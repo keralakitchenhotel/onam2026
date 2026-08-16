@@ -29,8 +29,8 @@ export const POSTER_23_DELICACIES = [
 export const SADYA_MENU_ITEMS: MenuItem[] = [
   {
     id: 'sadya-regular',
-    name: 'Grand Onam Sadya (Dine-in)',
-    malayalamName: 'ഓണ സദ്യ (ഡൈനിംഗ്)',
+    name: 'Grand Onam Sadya',
+    malayalamName: 'ഓണ സദ്യ',
     category: 'Sadya Packages',
     price: 220,
     servingPax: '1 Person',

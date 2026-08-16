@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   guest_email TEXT,
 
   -- Sadya & Items
-  fulfillment TEXT NOT NULL CHECK (fulfillment IN ('pickup', 'delivery')),
+  fulfillment TEXT NOT NULL CHECK (fulfillment IN ('pickup', 'delivery', 'dinein')),
   booking_date DATE NOT NULL,
   time_slot TEXT NOT NULL,
   sadya_item_id TEXT NOT NULL,
@@ -471,8 +471,8 @@ INSERT INTO public.menu_items
   (id, name, malayalam_name, category, price, description, items_included, item_count, image_url, is_veg, is_available, is_popular, serving_pax)
 SELECT
   'sadya-regular',
-  'Grand Onam Sadya (Dine-in)',
-  'ഓണ സദ്യ (ഡൈനിംഗ്)',
+  'Grand Onam Sadya',
+  'ഓണ സദ്യ',
   'Sadya Packages',
   220,
   'Authentic 23-item Kerala Onam Sadya served fresh on cut banana leaf at Kerala Kitchen, Valiyaparambu.',

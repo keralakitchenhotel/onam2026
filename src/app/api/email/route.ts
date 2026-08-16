@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Booking } from '@/types';
+import { jsPDF } from 'jspdf';
+import { formatINR, formatDate } from '@/lib/utils';
 
 // Helper to format currency in HTML
 function formatCurrencyHtml(amount: number) {
@@ -13,7 +15,11 @@ function getCustomerConfirmationHtml(booking: Booking, headerHtml: string, foote
       ${headerHtml}
       <div style="padding: 24px; background-color: #ffffff;">
         <p style="font-size: 16px; margin-top: 0;">Dear <strong>${booking.customer.name}</strong>,</p>
-        <p style="font-size: 15px;">Your pre-booking for authentic Kerala Kitchen Onam Sadya is <strong>confirmed</strong>!</p>
+        <p style="font-size: 15px;">
+          ${booking.orderStatus === 'Confirmed'
+            ? `Your pre-booking for authentic Kerala Kitchen Onam Sadya is <strong>confirmed</strong>!`
+            : `We have received your pre-booking request for authentic Kerala Kitchen Onam Sadya. We will notify you once it is confirmed!`}
+        </p>
         
         <div style="background-color: #FFF8E1; border: 1px solid #FFE082; padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
           <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #B78103; display: block; letter-spacing: 0.5px;">Booking ID</span>
@@ -27,6 +33,16 @@ function getCustomerConfirmationHtml(booking: Booking, headerHtml: string, foote
           <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Fulfillment:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
           <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Sadya Package:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
           ${booking.extras && booking.extras.length > 0 ? `<tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Extras:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.extras.map(e => `${e.name} (x${e.quantity})`).join(', ')}</td></tr>` : ''}
+          ${booking.fulfillment === 'delivery' ? `
+          <tr style="border-bottom: 1px solid #f1f1f1;">
+            <td style="padding: 8px 0; color: #666;">Delivery Address:</td>
+            <td style="padding: 8px 0; font-weight: bold; text-align: right; line-height: 1.4;">
+              ${booking.deliveryAddress || booking.customer.address || ''}
+              ${booking.landmark ? `<br/><span style="font-size: 11px; color: #666; font-weight: normal;">Landmark: ${booking.landmark}</span>` : ''}
+              ${booking.customer.pincode ? `<br/><span style="font-size: 11px; color: #666; font-weight: normal;">PIN Code: ${booking.customer.pincode}</span>` : ''}
+            </td>
+          </tr>
+          ` : ''}
           <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Total Paid:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; color: #2E7D32; font-size: 16px;">${formatCurrencyHtml(booking.totalAmount)}</td></tr>
         </table>
 
@@ -38,22 +54,188 @@ function getCustomerConfirmationHtml(booking: Booking, headerHtml: string, foote
           </div>
         ` : ''}
 
-        <p style="font-size: 14px; color: #555;">To track your order status in real time, check your customer dashboard at <a href="${process.env.NEXT_PUBLIC_SITE_URL}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Live Tracker</a>.</p>
+        <p style="font-size: 14px; color: #555;">Please find your formal invoice PDF attached to this email. To track your order status in real time, check your customer dashboard at <a href="${process.env.NEXT_PUBLIC_SITE_URL}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Live Tracker</a>.</p>
       </div>
       ${footerHtml}
     </div>
   `;
 }
 
-// Send email via Resend HTTP API
-async function sendEmail(opts: { to: string; subject: string; html: string }) {
+// Generate server-side PDF invoice and return as Base64 string
+function buildServerInvoiceBase64(booking: Booking): string {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const darkGreen = [46, 125, 50];
+  const gold = [212, 175, 55];
+  const darkCharcoal = [33, 33, 33];
+  const lightBg = [253, 251, 247];
+
+  // Draw background & headers
+  doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+  doc.rect(0, 0, 210, 297, 'F');
+  doc.setFillColor(darkGreen[0], darkGreen[1], darkGreen[2]);
+  doc.rect(0, 0, 210, 38, 'F');
+  doc.setFillColor(gold[0], gold[1], gold[2]);
+  doc.rect(0, 38, 210, 3, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('KERALA KITCHEN', 15, 18);
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Authentic Onam Sadya Pre-Booking Invoice', 15, 27);
+
+  doc.setTextColor(gold[0], gold[1], gold[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text(booking.bookingNumber, 195, 22, { align: 'right' });
+
+  // Details box
+  let y = 52;
+  doc.setDrawColor(220, 220, 220);
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(15, y, 180, 32, 2, 2, 'FD');
+
+  doc.setTextColor(darkCharcoal[0], darkCharcoal[1], darkCharcoal[2]);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Booking Date:', 22, y + 10);
+  doc.text('Fulfillment Date:', 22, y + 20);
+  doc.text('Time Slot:', 110, y + 10);
+  doc.text('Fulfillment Mode:', 110, y + 20);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(formatDate(booking.createdAt), 52, y + 10);
+  doc.text(formatDate(booking.date), 56, y + 20);
+  doc.text(booking.timeSlot, 135, y + 10);
+  doc.text(booking.fulfillment.toUpperCase(), 150, y + 20);
+
+  y += 42;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(darkGreen[0], darkGreen[1], darkGreen[2]);
+  doc.text('Customer Information', 15, y);
+
+  y += 6;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(darkCharcoal[0], darkCharcoal[1], darkCharcoal[2]);
+  doc.text(`Name: ${booking.customer.name}`, 15, y + 5);
+  doc.text(`Phone: ${booking.customer.phone}`, 15, y + 12);
+  doc.text(`Email: ${booking.customer.email}`, 15, y + 19);
+
+  if (booking.fulfillment === 'delivery' && (booking.deliveryAddress || booking.customer.address)) {
+    doc.text(`Delivery Address: ${booking.deliveryAddress || booking.customer.address}, PIN: ${booking.customer.pincode || ''}`, 15, y + 26);
+    y += 7;
+  }
+
+  y += 32;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(darkGreen[0], darkGreen[1], darkGreen[2]);
+  doc.text('Order Breakdown', 15, y);
+
+  y += 6;
+  doc.setFillColor(240, 245, 240);
+  doc.rect(15, y, 180, 8, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(50, 50, 50);
+  doc.text('Item Description', 20, y + 5.5);
+  doc.text('Qty / Pax', 120, y + 5.5);
+  doc.text('Amount', 185, y + 5.5, { align: 'right' });
+
+  y += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text(booking.sadyaItem.name, 20, y + 7);
+  doc.text(`${booking.quantity.adults} Adult(s)${booking.quantity.children ? `, ${booking.quantity.children} Child(ren)` : ''}`, 120, y + 7);
+  const basePrice = booking.sadyaItem.price * (booking.quantity.adults + booking.quantity.children * 0.6);
+  doc.text(formatINR(basePrice), 185, y + 7, { align: 'right' });
+
+  y += 12;
+  booking.extras.forEach((extra) => {
+    doc.text(`Extra: ${extra.name}`, 20, y + 5);
+    doc.text(`x${extra.quantity}`, 120, y + 5);
+    doc.text(formatINR(extra.price * extra.quantity), 185, y + 5, { align: 'right' });
+    y += 9;
+  });
+
+  doc.setDrawColor(200, 200, 200);
+  doc.line(15, y + 3, 195, y + 3);
+
+  y += 10;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Subtotal:', 130, y);
+  doc.text(formatINR(booking.subtotal), 185, y, { align: 'right' });
+
+  if (booking.discount > 0) {
+    y += 7;
+    doc.setTextColor(180, 0, 0);
+    doc.text(`Discount (${booking.couponApplied?.code || 'Promo'}):`, 130, y);
+    doc.text(`-${formatINR(booking.discount)}`, 185, y, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+  }
+
+  if (booking.deliveryCharge > 0) {
+    y += 7;
+    doc.text('Delivery Charge:', 130, y);
+    doc.text(formatINR(booking.deliveryCharge), 185, y, { align: 'right' });
+  }
+
+  y += 10;
+  doc.setFillColor(darkGreen[0], darkGreen[1], darkGreen[2]);
+  doc.rect(125, y - 5, 70, 10, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('TOTAL AMOUNT:', 130, y + 2);
+  doc.text(formatINR(booking.totalAmount), 190, y + 2, { align: 'right' });
+
+  y += 25;
+  doc.setTextColor(darkCharcoal[0], darkCharcoal[1], darkCharcoal[2]);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Payment Status: ${booking.paymentStatus.toUpperCase()} (${booking.paymentMethod.toUpperCase()})`, 15, y);
+  doc.text(`Order Status: ${booking.orderStatus}`, 15, y + 7);
+
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Thank you for choosing Kerala Kitchen to celebrate your Onam Festival!', 15, y + 20);
+  doc.text('Please present this invoice or QR code at pickup/delivery.', 15, y + 26);
+
+  return (doc as any).output('base64');
+}
+
+// Send email via Resend HTTP API (handles optional Base64 attachments)
+async function sendEmail(opts: { to: string; subject: string; html: string; attachments?: { content: string; filename: string }[] }) {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'Kerala Kitchen <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.warn('⚠️ RESEND_API_KEY not found in environment. Operating in sandbox fallback logging mode.');
-    console.log(`[EMAIL SANDBOX LOG] Simulated dispatch to: "${opts.to}" | subject: "${opts.subject}"`);
+    console.log(`[EMAIL SANDBOX LOG] Simulated dispatch to: "${opts.to}" | subject: "${opts.subject}" | attachments: ${opts.attachments?.map(a => a.filename).join(', ') || 'none'}`);
     return { sandbox: true };
+  }
+
+  const payload: any = {
+    from: fromEmail,
+    to: [opts.to],
+    subject: opts.subject,
+    html: opts.html,
+  };
+
+  if (opts.attachments) {
+    payload.attachments = opts.attachments;
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -62,12 +244,7 @@ async function sendEmail(opts: { to: string; subject: string; html: string }) {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: [opts.to],
-      subject: opts.subject,
-      html: opts.html,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -253,6 +430,16 @@ export async function POST(request: Request) {
     const emailActions: Promise<any>[] = [];
     const pushActions: Promise<any>[] = [];
 
+    // Pre-build the PDF Invoice Base64 attachment for confirmations
+    let pdfBase64 = '';
+    try {
+      pdfBase64 = buildServerInvoiceBase64(booking);
+    } catch (pdfErr) {
+      console.error('Failed to compile PDF Invoice server-side:', pdfErr);
+    }
+
+    const attachments = pdfBase64 ? [{ content: pdfBase64, filename: `${booking.bookingNumber}-Invoice.pdf` }] : undefined;
+
     if (type === 'new_booking') {
       // 1. Admin Alert Email (always dispatched for new requests)
       const adminSubject = `🚨 New Booking Alert: #${booking.bookingNumber} (${booking.customer.name})`;
@@ -287,23 +474,27 @@ export async function POST(request: Request) {
         </div>
       `;
 
-      emailActions.push(sendEmail({ to: adminEmail, subject: adminSubject, html: adminHtml }));
+      emailActions.push(sendEmail({ to: adminEmail, subject: adminSubject, html: adminHtml, attachments }));
 
-      // 2. Customer Confirmation Email & Push Notification (only if booking is immediately confirmed / paid online)
-      if (booking.orderStatus === 'Confirmed') {
-        const customerSubject = `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`;
-        const customerHtml = getCustomerConfirmationHtml(booking, headerHtml, footerHtml);
-        
-        emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml }));
+      // 2. Customer Confirmation Email & Push Notification (dispatched immediately on new booking)
+      const isConfirmed = booking.orderStatus === 'Confirmed';
+      const customerSubject = isConfirmed
+        ? `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`
+        : `🍛 Pre-Booking Received! Onam Sadya Order #${booking.bookingNumber}`;
+      
+      const customerHtml = getCustomerConfirmationHtml(booking, headerHtml, footerHtml);
+      
+      emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml, attachments }));
 
-        if (fcmToken) {
-          pushActions.push(sendPushNotification({
-            token: fcmToken,
-            title: 'Pre-Booking Confirmed! 🍛',
-            body: `Your Kerala Kitchen Onam Sadya order #${booking.bookingNumber} is confirmed!`,
-            link: `${siteUrl}/track?id=${booking.bookingNumber}`,
-          }));
-        }
+      if (fcmToken) {
+        pushActions.push(sendPushNotification({
+          token: fcmToken,
+          title: isConfirmed ? 'Pre-Booking Confirmed! 🍛' : 'Pre-Booking Received! 🍛',
+          body: isConfirmed
+            ? `Your Kerala Kitchen Onam Sadya order #${booking.bookingNumber} is confirmed!`
+            : `We have received your pre-booking request #${booking.bookingNumber}!`,
+          link: `${siteUrl}/track?id=${booking.bookingNumber}`,
+        }));
       }
     } else if (type === 'status_update') {
       // If status changed to Confirmed, send the rich Customer Confirmation Email (previously skipped for Cash/COD)
@@ -311,7 +502,7 @@ export async function POST(request: Request) {
         const customerSubject = `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`;
         const customerHtml = getCustomerConfirmationHtml(booking, headerHtml, footerHtml);
         
-        emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml }));
+        emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml, attachments }));
 
         if (fcmToken) {
           pushActions.push(sendPushNotification({
@@ -342,7 +533,7 @@ export async function POST(request: Request) {
               <p style="font-size: 15px;">We have updated the status of your Kerala Kitchen Onam Sadya order.</p>
 
               <div style="background-color: #f1f8e9; border-left: 4px solid #2e7d32; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <span style="font-size: 10px; font-bold; text-transform: uppercase; color: #666; display: block;">Current Order Status</span>
+                <span style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; display: block;">Current Order Status</span>
                 <strong style="font-size: 18px; color: #2e7d32; display: block; margin: 2px 0;">✨ ${booking.orderStatus}</strong>
                 <p style="margin: 5px 0 0 0; font-size: 13px; color: #555;">${statusDetails}</p>
               </div>
@@ -351,6 +542,16 @@ export async function POST(request: Request) {
                 <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Order Reference:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.bookingNumber}</td></tr>
                 <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Fulfillment Mode:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
                 <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Package Details:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
+                ${booking.fulfillment === 'delivery' ? `
+                <tr style="border-bottom: 1px solid #f9f9f9;">
+                  <td style="padding: 6px 0;">Delivery Address:</td>
+                  <td style="padding: 6px 0; font-weight: bold; text-align: right; line-height: 1.4;">
+                    ${booking.deliveryAddress || booking.customer.address || ''}
+                    ${booking.landmark ? `<br/><span style="font-size: 11px; color: #666; font-weight: normal;">Landmark: ${booking.landmark}</span>` : ''}
+                    ${booking.customer.pincode ? `<br/><span style="font-size: 11px; color: #666; font-weight: normal;">PIN Code: ${booking.customer.pincode}</span>` : ''}
+                  </td>
+                </tr>
+                ` : ''}
                 ${booking.fulfillment === 'delivery' && booking.deliveryOtp && booking.orderStatus === 'Out for Delivery' ? `
                   <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0; color: #1b5e20;">Doorstep Delivery OTP:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; color: #1b5e20; font-family: monospace; font-size: 15px; letter-spacing: 1px;">${booking.deliveryOtp}</td></tr>
                 ` : ''}
@@ -362,7 +563,7 @@ export async function POST(request: Request) {
           </div>
         `;
 
-        emailActions.push(sendEmail({ to: booking.customer.email, subject: statusSubject, html: customerHtml }));
+        emailActions.push(sendEmail({ to: booking.customer.email, subject: statusSubject, html: customerHtml, attachments }));
 
         if (fcmToken) {
           pushActions.push(sendPushNotification({

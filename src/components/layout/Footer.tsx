@@ -1,10 +1,24 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { MapPin, Phone, Mail, Clock, Heart } from 'lucide-react';
 import { KasavuStrip, PookalamMandala, NilavilakkuLamp, BananaLeafDivider } from '@/components/landing/KeralaDecorations';
 import { VegBadgeIcon, CertificateBadgeIcon, BananaLeafIcon, FlowerIconSvg, LeafIcon, FestivalFireIcon } from '@/components/common/SvgIcons';
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  const isExcluded = pathname && (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/staff') ||
+    pathname.startsWith('/deliver') ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/login')
+  );
+
+  if (isExcluded) return null;
   return (
     <footer className="bg-gradient-to-b from-coconut-200 via-coconut-200 to-coconut-300 border-t border-gold/25 pt-16 pb-28 md:pb-14 text-slate-700 relative overflow-hidden">
       {/* ---- Decorative Elements ---- */}

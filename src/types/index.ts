@@ -36,7 +36,7 @@ export interface SavedAddress {
   createdAt?: string;
 }
 
-export type FulfillmentType = 'pickup' | 'delivery';
+export type FulfillmentType = 'pickup' | 'delivery' | 'dinein';
 
 export type OrderStatus = 
   | 'Booked' 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useBookingStore } from '@/lib/store';
 import { formatINR, formatDate } from '@/lib/utils';
 import { Booking, OrderStatus } from '@/types';
@@ -15,6 +15,11 @@ import {
   Navigation,
   ShieldCheck,
   Truck,
+  Camera,
+  QrCode,
+  Scan,
+  X,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -51,6 +56,7 @@ export default function DeliveryPortal() {
   const [otpBooking, setOtpBooking] = useState<Booking | null>(null);
   const [inputOtp, setInputOtp] = useState('');
   const [otpError, setOtpError] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
 
   // Only show delivery orders
   const deliveryOrders = bookings.filter((b) => b.fulfillment === 'delivery');
@@ -91,6 +97,7 @@ export default function DeliveryPortal() {
       setOtpBooking(booking);
       setInputOtp('');
       setOtpError('');
+      setIsScanning(false);
       setShowOtpModal(true);
     } else {
       updateOrderStatus(booking.id, newStatus);
@@ -310,46 +317,222 @@ export default function DeliveryPortal() {
                 <ShieldCheck className="w-7 h-7" />
               </div>
               <h3 className="font-serif text-xl font-bold text-slate-900">
-                Delivery OTP Verification
+                Delivery Verification
               </h3>
               <p className="text-xs text-slate-600 mt-1">
-                Ask <strong>{otpBooking.customer.name}</strong> for the 4-digit OTP to complete delivery #{otpBooking.bookingNumber}
+                Verify delivery for <strong>{otpBooking.customer.name}</strong> (Order #{otpBooking.bookingNumber})
               </p>
             </div>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                value={inputOtp}
-                onChange={(e) => setInputOtp(e.target.value.replace(/\D/g, ''))}
-                placeholder="_ _ _ _"
-                autoFocus
-                className="w-full text-center font-mono text-4xl font-extrabold tracking-[0.5em] py-4 border-2 border-emerald-500 rounded-2xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
+            {isScanning ? (
+              <QRScanner
+                expectedCode={otpBooking.bookingNumber}
+                onMatched={() => {
+                  updateOrderStatus(otpBooking.id, 'Delivered');
+                  setShowOtpModal(false);
+                  setOtpBooking(null);
+                }}
+                onClose={() => setIsScanning(false)}
               />
+            ) : (
+              <div className="space-y-3">
+                <div className="text-xs text-slate-500 font-semibold text-center uppercase tracking-wider">
+                  Enter 4-digit customer OTP
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={inputOtp}
+                  onChange={(e) => setInputOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="_ _ _ _"
+                  autoFocus
+                  className="w-full text-center font-mono text-4xl font-extrabold tracking-[0.5em] py-4 border-2 border-emerald-500 rounded-2xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
+                />
 
-              {otpError && (
-                <div className="text-xs text-red-600 font-medium text-center bg-red-50 p-2 rounded-xl">{otpError}</div>
-              )}
+                {otpError && (
+                  <div className="text-xs text-red-600 font-medium text-center bg-red-50 p-2 rounded-xl">{otpError}</div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setIsScanning(!isScanning)}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 transition"
+              >
+                {isScanning ? (
+                  <>
+                    <QrCode className="w-4 h-4 text-emerald-600" />
+                    <span>Switch to OTP Code Entry</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4 text-emerald-600" />
+                    <span>Scan Customer QR Code</span>
+                  </>
+                )}
+              </button>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 border-t border-slate-100 pt-3">
               <button
                 onClick={() => { setShowOtpModal(false); setOtpBooking(null); }}
                 className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-colors"
               >
                 Cancel
               </button>
-              <button
-                onClick={handleVerifyOtp}
-                className="flex-1 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl shadow transition-colors"
-              >
-                ✅ Verify & Complete
-              </button>
+              {!isScanning && (
+                <button
+                  onClick={handleVerifyOtp}
+                  className="flex-1 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl shadow transition-colors"
+                >
+                  ✅ Verify & Complete
+                </button>
+              )}
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// Dynamic script loader for jsQR library from a CDN
+const loadJsQR = (): Promise<any> => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve(null);
+    if ((window as any).jsQR) return resolve((window as any).jsQR);
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+    script.onload = () => resolve((window as any).jsQR);
+    script.onerror = () => resolve(null);
+    document.body.appendChild(script);
+  });
+};
+
+interface QRScannerProps {
+  expectedCode: string;
+  onMatched: () => void;
+  onClose: () => void;
+}
+
+function QRScanner({ expectedCode, onMatched, onClose }: QRScannerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    let animFrameId: number;
+
+    const startCamera = async () => {
+      try {
+        const jsQrModule = await loadJsQR();
+        if (!jsQrModule) {
+          throw new Error('Could not load QR code scanner engine.');
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.play();
+        }
+        setLoading(false);
+
+        const scanFrame = () => {
+          if (!active) return;
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const qrCode = (window as any).jsQR(
+                imageData.data,
+                imageData.width,
+                imageData.height,
+                { inversionAttempts: 'dontInvert' }
+              );
+
+              if (qrCode && qrCode.data) {
+                const scanned = qrCode.data.trim();
+                if (scanned === expectedCode) {
+                  onMatched();
+                  return;
+                }
+              }
+            }
+          }
+          animFrameId = requestAnimationFrame(scanFrame);
+        };
+
+        animFrameId = requestAnimationFrame(scanFrame);
+      } catch (err: any) {
+        console.error('QR Scanner camera error:', err);
+        setErrorMsg(err.message || 'Camera access denied or failed. Check permissions.');
+        setLoading(false);
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(animFrameId);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track: any) => track.stop());
+      }
+    };
+  }, [expectedCode, onMatched]);
+
+  return (
+    <div className="relative bg-slate-950 rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center text-white p-2">
+      {loading && (
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="w-8 h-8 text-gold animate-spin" />
+          <span className="text-xs text-slate-300">Activating camera...</span>
+        </div>
+      )}
+
+      {errorMsg ? (
+        <div className="text-center p-4 space-y-2">
+          <X className="w-10 h-10 text-red-500 mx-auto" />
+          <p className="text-sm font-bold text-slate-200">{errorMsg}</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs bg-white/10 px-3 py-1.5 rounded-lg border border-white/20"
+          >
+            Close Scanner
+          </button>
+        </div>
+      ) : (
+        <>
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover rounded-xl"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="absolute inset-0 border-[3px] border-emerald-500/80 rounded-xl pointer-events-none animate-pulse m-6" />
+          <div className="absolute bottom-4 left-0 right-0 text-center">
+            <span className="bg-slate-900/80 text-[10px] text-white font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              Align with Customer QR Code
+            </span>
+          </div>
+        </>
       )}
     </div>
   );

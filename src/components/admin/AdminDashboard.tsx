@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useBookingStore } from '@/lib/store';
 import { SADYA_MENU_ITEMS, AVAILABLE_SLOTS, VALID_COUPONS, ONAM_FESTIVAL_DATES } from '@/lib/constants';
 import { formatINR, formatDate } from '@/lib/utils';
 import { generateInvoicePDF } from '@/lib/pdf';
-import { Booking, OrderStatus, MenuItem, DeliverySlot, Coupon } from '@/types';
+import { Booking, OrderStatus, MenuItem, DeliverySlot, Coupon, FulfillmentType } from '@/types';
 import {
   TrendingUp,
   ShoppingBag,
@@ -77,6 +77,58 @@ export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const { bookings, updateOrderStatus, updateBooking, deleteBooking, isLoaded } = useBookingStore();
   const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'slots' | 'coupons' | 'analytics'>('orders');
+
+  const prevBookingsCount = useRef<number | null>(null);
+
+  // Web Audio chime synthesizer for real-time doorbell/cash-register notification sounds
+  const playAlarmSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Note 1: E5
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start();
+      osc1.stop(ctx.currentTime + 0.35);
+
+      // Note 2: A5 slightly offset
+      setTimeout(() => {
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.frequency.setValueAtTime(880, ctx.currentTime);
+        gain2.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start();
+        osc2.stop(ctx.currentTime + 0.5);
+      }, 120);
+    } catch (err) {
+      console.warn('Web Audio Context blocked or not supported:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    // Initialize count on first load
+    if (prevBookingsCount.current === null) {
+      prevBookingsCount.current = bookings.length;
+      return;
+    }
+
+    // Play chime alarm if new order enters the queue
+    if (bookings.length > prevBookingsCount.current) {
+      playAlarmSound();
+    }
+    
+    prevBookingsCount.current = bookings.length;
+  }, [bookings, isLoaded]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterDate, setFilterDate] = useState<string>('all');
   const [filterFulfillment, setFilterFulfillment] = useState<string>('all');
@@ -91,7 +143,7 @@ export default function AdminDashboard() {
   const [editEmail, setEditEmail] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editTimeSlot, setEditTimeSlot] = useState('');
-  const [editFulfillment, setEditFulfillment] = useState<'pickup' | 'delivery'>('pickup');
+  const [editFulfillment, setEditFulfillment] = useState<FulfillmentType>('pickup');
   const [editAdults, setEditAdults] = useState(1);
   const [editAddress, setEditAddress] = useState('');
   const [editLandmark, setEditLandmark] = useState('');
@@ -1060,11 +1112,12 @@ export default function AdminDashboard() {
                       <label className="block mb-1">Fulfillment Mode</label>
                       <select
                         value={editFulfillment}
-                        onChange={(e) => setEditFulfillment(e.target.value as 'pickup' | 'delivery')}
+                        onChange={(e) => setEditFulfillment(e.target.value as FulfillmentType)}
                         className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 font-bold"
                       >
                         <option value="pickup">🏪 Counter Pickup</option>
                         <option value="delivery">🚗 Doorstep Delivery</option>
+                        <option value="dinein">🍽️ Dine-In at Restaurant</option>
                       </select>
                     </div>
                     <div>

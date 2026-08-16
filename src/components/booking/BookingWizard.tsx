@@ -89,6 +89,18 @@ export default function BookingWizard() {
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
+  const handleProceedFromStep4 = () => {
+    if (!draft.customerName.trim() || !draft.customerPhone.trim() || !draft.customerEmail.trim()) {
+      alert('Please fill in your Name, Phone Number, and Email before proceeding.');
+      return;
+    }
+    if (draft.fulfillment === 'delivery' && !draft.customerAddress.trim()) {
+      alert('Please provide your complete Delivery Address.');
+      return;
+    }
+    nextStep();
+  };
+
   const adultPrice = activeSadya.price;
   const childPrice = Math.round(activeSadya.price * 0.6);
   const baseTotal = adultPrice * draft.adultsCount + childPrice * draft.childrenCount;
@@ -417,7 +429,7 @@ export default function BookingWizard() {
             </div>
 
             {/* Fulfillment mode - stacked on mobile, side-by-side on desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={() => updateDraft({ fulfillment: 'delivery' })}
                 className={`p-5 rounded-2xl border-2 cursor-pointer transition-all touch-target text-left ${
@@ -451,11 +463,31 @@ export default function BookingWizard() {
                     🏪
                   </div>
                   <div>
-                    <h3 className="font-serif font-bold text-slate-900">Hotel Counter Pickup</h3>
+                    <h3 className="font-serif font-bold text-slate-900">Counter Pickup</h3>
                     <span className="text-xs text-slate-500">Fast token QR verification</span>
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 mt-2">Collect directly at Kerala Kitchen express takeaway counters.</p>
+              </button>
+
+              <button
+                onClick={() => updateDraft({ fulfillment: 'dinein' })}
+                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all touch-target text-left ${
+                  draft.fulfillment === 'dinein'
+                    ? 'border-leaf bg-coconut-100 shadow-md'
+                    : 'border-slate-200 hover:border-gold/50 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                    🍽️
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-slate-900">Dine-In experience</h3>
+                    <span className="text-xs text-slate-500">Authentic plantain leaf</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 mt-2">Enjoy hot and unlimited traditional Sadya banquet at our hotel.</p>
               </button>
             </div>
 
@@ -699,7 +731,7 @@ export default function BookingWizard() {
                 Back
               </button>
               <button
-                onClick={nextStep}
+                onClick={handleProceedFromStep4}
                 className="bg-leaf hover:bg-leaf-dark text-white font-bold px-8 py-3.5 rounded-full shadow-md flex items-center gap-2 touch-target"
               >
                 <span>Apply Offers & Discounts</span>

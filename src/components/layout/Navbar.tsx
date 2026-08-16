@@ -137,10 +137,10 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="text-xs font-bold text-maroon hover:bg-maroon-soft flex items-center gap-1.5 bg-white/80 border border-maroon/30 px-4 py-2 rounded-full hover:border-maroon transition-colors"
-                title="Login to Admin / Staff panel"
+                className="text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 bg-white/80 border border-slate-200 px-4 py-2 rounded-full hover:border-slate-300 transition-colors"
+                title="Customer Login"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-3.5 h-3.5 text-slate-500" />
                 <span>Login</span>
               </Link>
             )}
@@ -212,10 +212,10 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="w-full text-center py-3.5 text-sm font-bold text-maroon bg-white border border-maroon/30 rounded-2xl flex items-center justify-center gap-2 touch-target"
+                className="w-full text-center py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl flex items-center justify-center gap-2 touch-target"
               >
-                <LogIn className="w-4 h-4 text-maroon" />
-                Admin / Staff Login
+                <LogIn className="w-4 h-4 text-slate-500" />
+                Customer Login
               </Link>
             )}
             <a

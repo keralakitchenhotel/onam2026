@@ -477,8 +477,13 @@ export function useBookingStore() {
       paymentStatus: paymentStatus,
       orderStatus: paymentStatus === 'paid' ? 'Confirmed' : 'Booked',
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${bookingNum}`,
-      tokenNumber: draft.fulfillment === 'pickup' ? `PK-${Math.floor(10 + Math.random() * 90)}` : undefined,
-      estimatedWaitMinutes: draft.fulfillment === 'pickup' ? 12 : undefined,
+      tokenNumber:
+        draft.fulfillment === 'pickup'
+          ? `PK-${Math.floor(10 + Math.random() * 90)}`
+          : draft.fulfillment === 'dinein'
+          ? `DI-${Math.floor(10 + Math.random() * 90)}`
+          : undefined,
+      estimatedWaitMinutes: draft.fulfillment === 'pickup' || draft.fulfillment === 'dinein' ? 12 : undefined,
     };
 
     const updatedBookings = [newBooking, ...bookings];

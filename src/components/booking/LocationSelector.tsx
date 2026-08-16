@@ -55,6 +55,19 @@ export default function LocationSelector({
     }
   }, [address, landmark, pincode, deliveryInstructions]);
 
+  // Auto-sync text and GPS changes to parent draft to avoid requiring a separate Confirm button click
+  useEffect(() => {
+    onUpdateLocation({
+      address: localAddress,
+      landmark: localLandmark,
+      pincode: localPincode,
+      deliveryInstructions: localInstructions,
+      latitude,
+      longitude,
+      locationAccuracy,
+    });
+  }, [localAddress, localLandmark, localPincode, localInstructions, latitude, longitude, locationAccuracy]);
+
   // Reset transient GPS status when the captured location clears
   useEffect(() => {
     if (!latitude && !longitude) {
@@ -142,7 +155,7 @@ export default function LocationSelector({
               Delivery Location Capture
             </h4>
             <p className="text-xs text-slate-600 mt-1">
-              Use GPS for exact delivery coordinates or enter your doorstep address manually.
+              Use GPS for exact delivery coordinates (Optional) or enter your doorstep address manually.
             </p>
           </div>
           <button

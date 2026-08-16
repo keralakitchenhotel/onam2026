@@ -179,13 +179,15 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Embedded Map Placeholder */}
-        <div className="w-full aspect-[16/9] sm:aspect-[4/3] rounded-3xl bg-coconut-200 border border-gold/25 flex items-center justify-center text-sm text-slate-500 shadow-sm relative overflow-hidden">
-          <div className="text-center space-y-2 z-10">
-            <MapPin className="w-10 h-10 text-leaf mx-auto opacity-40" />
-            <p className="font-serif text-lg font-bold text-leaf-dark">Kerala Kitchen, MG Road, Kochi</p>
-            <p className="text-xs text-slate-500">Map integration available in production build</p>
-          </div>
+        {/* Embedded Map View */}
+        <div className="w-full aspect-[16/9] sm:aspect-[21/9] rounded-3xl bg-coconut-100 border border-gold/25 shadow-sm overflow-hidden relative">
+          <iframe
+            src="https://maps.google.com/maps?q=KERALA%20KITCHEN,%20Valiyaparamba&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            className="w-full h-full border-0"
+            allowFullScreen
+            loading="lazy"
+            title="Kerala Kitchen Valiyaparamba Location Map"
+          />
         </div>
       </div>
     </div>
