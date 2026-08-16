@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
-  "name": "kerala-kitchen-onam",
+  "name": "kerala-kitchen-app",
   "compatibility_date": "2026-06-01",
   "compatibility_flags": [
     "nodejs_compat",
@@ -9,12 +9,13 @@
   ],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "kerala-kitchen-onam"
+      "service": "kerala-kitchen-app"
     }
   ],
   "r2_buckets": [
