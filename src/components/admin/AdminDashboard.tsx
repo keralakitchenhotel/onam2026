@@ -80,34 +80,60 @@ export default function AdminDashboard() {
 
   const prevBookingsCount = useRef<number | null>(null);
 
-  // Web Audio chime synthesizer for real-time doorbell/cash-register notification sounds
-  const playAlarmSound = () => {
+  // Web Audio alarm synthesizer — rings for 15 seconds when a new order arrives
+  const alarmController = useRef<{ stop: () => void } | null>(null);
+  const alarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isAlarmRinging, setIsAlarmRinging] = useState(false);
+
+  const stopAlarm = () => {
+    if (alarmTimer.current) {
+      clearTimeout(alarmTimer.current);
+      alarmTimer.current = null;
+    }
+    alarmController.current?.stop();
+    alarmController.current = null;
+    setIsAlarmRinging(false);
+  };
+
+  const playNewOrderAlarm = () => {
+    // If a previous alarm is still ringing, restart it rather than stacking sounds
+    stopAlarm();
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Note 1: E5
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
-      gain1.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start();
-      osc1.stop(ctx.currentTime + 0.35);
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 0.35;
+      masterGain.connect(ctx.destination);
 
-      // Note 2: A5 slightly offset
-      setTimeout(() => {
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.frequency.setValueAtTime(880, ctx.currentTime);
-        gain2.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start();
-        osc2.stop(ctx.currentTime + 0.5);
-      }, 120);
+      // Alternating high/low siren beeps for 15 seconds
+      const startTime = ctx.currentTime + 0.05;
+      const beepDuration = 0.28;
+      const gap = 0.35;
+      const totalBeeps = Math.floor(15000 / (gap * 1000));
+      const oscillators: OscillatorNode[] = [];
+
+      for (let i = 0; i < totalBeeps; i++) {
+        const t = startTime + i * gap;
+        const freq = i % 2 === 0 ? 880 : 620; // A5 → D#5 siren pattern
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + beepDuration);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t);
+        osc.stop(t + beepDuration + 0.05);
+        oscillators.push(osc);
+      }
+
+      alarmController.current = { stop: () => { try { ctx.close(); } catch { /* already closed */ } } };
+      setIsAlarmRinging(true);
+      alarmTimer.current = setTimeout(() => {
+        alarmController.current?.stop();
+        alarmController.current = null;
+        setIsAlarmRinging(false);
+      }, 15000);
     } catch (err) {
       console.warn('Web Audio Context blocked or not supported:', err);
     }
@@ -122,13 +148,18 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Play chime alarm if new order enters the queue
+    // Ring the 15-second alarm if a new order enters the queue
     if (bookings.length > prevBookingsCount.current) {
-      playAlarmSound();
+      playNewOrderAlarm();
     }
     
     prevBookingsCount.current = bookings.length;
   }, [bookings, isLoaded]);
+
+  // Stop the alarm cleanly if the admin navigates away mid-ring
+  useEffect(() => {
+    return () => stopAlarm();
+  }, []);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterDate, setFilterDate] = useState<string>('all');
   const [filterFulfillment, setFilterFulfillment] = useState<string>('all');
@@ -431,6 +462,28 @@ export default function AdminDashboard() {
           </button>
         </div>
       </div>
+
+      {/* ═══════════════ NEW ORDER ALARM BANNER ═══════════════ */}
+      {isAlarmRinging && (
+        <div className="animate-pulse flex flex-col sm:flex-row items-center justify-between gap-3 bg-red-600 text-white px-5 py-4 rounded-2xl shadow-lg border-2 border-red-800">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-white animate-bounce" />
+            <div>
+              <p className="font-extrabold text-sm sm:text-base">🔔 NEW ORDER RECEIVED!</p>
+              <p className="text-xs text-red-100">A customer has just placed a new Onam Sadya booking. Please review it in the Orders tab.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold bg-red-800/60 px-3 py-1.5 rounded-full whitespace-nowrap">⏰ Alarm: 15s</span>
+            <button
+              onClick={stopAlarm}
+              className="bg-white text-red-700 font-bold text-xs px-4 py-2 rounded-full shadow hover:bg-red-50 transition-colors whitespace-nowrap"
+            >
+              Stop Alarm
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════ OVERVIEW METRICS ═══════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">

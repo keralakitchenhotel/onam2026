@@ -224,7 +224,11 @@ async function sendEmail(opts: { to: string; subject: string; html: string; atta
   if (!apiKey) {
     console.warn('⚠️ RESEND_API_KEY not found in environment. Operating in sandbox fallback logging mode.');
     console.log(`[EMAIL SANDBOX LOG] Simulated dispatch to: "${opts.to}" | subject: "${opts.subject}" | attachments: ${opts.attachments?.map(a => a.filename).join(', ') || 'none'}`);
-    return { sandbox: true };
+    return { sandbox: true, to: opts.to, subject: opts.subject };
+  }
+
+  if (!opts.to || !opts.to.includes('@')) {
+    throw new Error(`Invalid recipient email address: "${opts.to}"`);
   }
 
   const payload: any = {
@@ -576,10 +580,33 @@ export async function POST(request: Request) {
       }
     }
 
-    // Await all dispatches in parallel
-    await Promise.all([...emailActions, ...pushActions]);
+    // Await all dispatches in parallel, isolating failures so one broken channel
+    // (e.g. a rejected admin email) can never prevent the customer email from sending.
+    const [emailResults, pushResults] = await Promise.all([
+      Promise.allSettled(emailActions),
+      Promise.allSettled(pushActions),
+    ]);
 
-    return NextResponse.json({ success: true });
+    const summary = {
+      emails: emailResults.map((r, i) =>
+        r.status === 'fulfilled'
+          ? { ok: true, sandbox: !!(r.value as any)?.sandbox, ...(r.value as any) }
+          : { ok: false, error: (r as PromiseRejectedResult).reason?.message || String((r as PromiseRejectedResult).reason) }
+      ),
+      pushes: pushResults.map((r) =>
+        r.status === 'fulfilled'
+          ? { ok: true, ...(r.value as any) }
+          : { ok: false, error: (r as PromiseRejectedResult).reason?.message || String((r as PromiseRejectedResult).reason) }
+      ),
+      totalEmails: emailResults.length,
+      failedEmails: emailResults.filter((r) => r.status === 'rejected').length,
+    };
+
+    if (summary.failedEmails > 0) {
+      console.error('❌ Some notification dispatches failed:', JSON.stringify(summary, null, 2));
+    }
+
+    return NextResponse.json({ success: true, summary });
   } catch (error: any) {
     console.error('❌ Notification dispatcher crashed:', error);
     return NextResponse.json({ error: error.message || 'Notification Dispatch Error' }, { status: 500 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Navigation, Edit3, CheckCircle2, AlertCircle, Loader2, Info } from 'lucide-react';
 
 interface LocationSelectorProps {
@@ -20,6 +20,7 @@ interface LocationSelectorProps {
     longitude: number | null;
     locationAccuracy: number | null;
   }) => void;
+  onConfirmLocation?: () => void;
 }
 
 export default function LocationSelector({
@@ -31,6 +32,7 @@ export default function LocationSelector({
   longitude,
   locationAccuracy,
   onUpdateLocation,
+  onConfirmLocation,
 }: LocationSelectorProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -43,20 +45,34 @@ export default function LocationSelector({
   const [localPincode, setLocalPincode] = useState(pincode || '673602');
   const [localInstructions, setLocalInstructions] = useState(deliveryInstructions);
   const [isEditing, setIsEditing] = useState(!address);
+  const firstRender = useRef(true);
 
-  // Sync local state when props change (e.g. saved address selected, GPS captured)
+  // Sync local state when props change externally (e.g. a saved address is selected).
+  // While the user is typing, props never change, so editing stays open.
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     setLocalAddress(address);
     setLocalLandmark(landmark);
     setLocalPincode(pincode || '673602');
     setLocalInstructions(deliveryInstructions);
-    if (address) {
+    // Close the editor only when the incoming address differs from what the user typed
+    if (address && address !== localAddress) {
       setIsEditing(false);
     }
   }, [address, landmark, pincode, deliveryInstructions]);
 
-  // Auto-sync text and GPS changes to parent draft to avoid requiring a separate Confirm button click
+  // Reset transient GPS status when the captured location clears
   useEffect(() => {
+    if (!latitude && !longitude) {
+      setGeoSuccess(null);
+      setGeoError(null);
+    }
+  }, [latitude, longitude]);
+
+  const pushLocationToParent = () => {
     onUpdateLocation({
       address: localAddress,
       landmark: localLandmark,
@@ -66,15 +82,7 @@ export default function LocationSelector({
       longitude,
       locationAccuracy,
     });
-  }, [localAddress, localLandmark, localPincode, localInstructions, latitude, longitude, locationAccuracy]);
-
-  // Reset transient GPS status when the captured location clears
-  useEffect(() => {
-    if (!latitude && !longitude) {
-      setGeoSuccess(null);
-      setGeoError(null);
-    }
-  }, [latitude, longitude]);
+  };
 
   const handleGetCurrentLocation = () => {
     setGeoError(null);
@@ -96,8 +104,9 @@ export default function LocationSelector({
         setIsLocating(false);
         setGeoSuccess('Location detected successfully');
 
+        // Keep the typed address as-is; GPS coordinates are stored separately.
         onUpdateLocation({
-          address: localAddress || 'Current GPS Location Detected',
+          address: localAddress,
           landmark: localLandmark,
           pincode: localPincode,
           deliveryInstructions: localInstructions,
@@ -132,16 +141,9 @@ export default function LocationSelector({
   };
 
   const handleConfirmLocation = () => {
-    onUpdateLocation({
-      address: localAddress,
-      landmark: localLandmark,
-      pincode: localPincode,
-      deliveryInstructions: localInstructions,
-      latitude,
-      longitude,
-      locationAccuracy,
-    });
+    pushLocationToParent();
     setIsEditing(false);
+    onConfirmLocation?.();
   };
 
   return (

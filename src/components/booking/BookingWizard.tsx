@@ -94,9 +94,19 @@ export default function BookingWizard() {
       alert('Please fill in your Name, Phone Number, and Email before proceeding.');
       return;
     }
-    if (draft.fulfillment === 'delivery' && !draft.customerAddress.trim()) {
-      alert('Please provide your complete Delivery Address.');
-      return;
+    if (draft.fulfillment === 'delivery') {
+      if (!draft.customerAddress.trim()) {
+        alert('Please provide your complete Delivery Address.');
+        return;
+      }
+      if (!/^[0-9]{6}$/.test(draft.customerPincode)) {
+        alert('Please enter a valid 6-digit Kerala PIN Code.');
+        return;
+      }
+      if (!draft.customerLandmark.trim()) {
+        alert('Please provide a nearby Landmark (required for local delivery).');
+        return;
+      }
     }
     nextStep();
   };
@@ -165,10 +175,22 @@ export default function BookingWizard() {
       setCurrentStep(4);
       return;
     }
-    if (draft.fulfillment === 'delivery' && !draft.customerAddress) {
-      alert('Please provide your complete Delivery Address.');
-      setCurrentStep(4);
-      return;
+    if (draft.fulfillment === 'delivery') {
+      if (!draft.customerAddress) {
+        alert('Please provide your complete Delivery Address.');
+        setCurrentStep(4);
+        return;
+      }
+      if (!/^[0-9]{6}$/.test(draft.customerPincode)) {
+        alert('Please enter a valid 6-digit Kerala PIN Code.');
+        setCurrentStep(4);
+        return;
+      }
+      if (!draft.customerLandmark.trim()) {
+        alert('Please provide a nearby Landmark (required for local delivery).');
+        setCurrentStep(4);
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -766,8 +788,8 @@ export default function BookingWizard() {
                 longitude: locData.longitude,
                 locationAccuracy: locData.locationAccuracy,
               });
-              setShowLocationSheet(false);
             }}
+            onConfirmLocation={() => setShowLocationSheet(false)}
           />
         </BottomSheet>
 
