@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Home, Calendar, ShoppingBag, Menu as MenuIcon, X, Utensils, Truck, Images, Star, PhoneCall, MapPin, LogIn, LayoutDashboard, ShieldCheck, ChevronDown } from 'lucide-react';
 import { FestivalFireIcon } from '@/components/common/SvgIcons';
 import { useAuth } from '@/context/AuthContext';
+import { isPortalPath } from '@/lib/navigation';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+
+  if (isPortalPath(pathname)) return null;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);

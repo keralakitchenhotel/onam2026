@@ -596,3 +596,7 @@ WHERE u.id = p.id
   AND u.email IN ('admin@keralakitchen.com', 'staff@keralakitchen.com', 'driver@keralakitchen.com', 'customer@keralakitchen.com');
 
 ALTER TABLE public.profiles ENABLE TRIGGER prevent_role_escalation;
+
+-- 18. FCM PUSH NOTIFICATIONS COLUMNS ---------------------------------------
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS fcm_token TEXT;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS fcm_token TEXT;

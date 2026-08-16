@@ -7,6 +7,7 @@ import { formatINR, formatDate } from '@/lib/utils';
 import { generateInvoicePDF } from '@/lib/pdf';
 import { Booking, ExtraItem } from '@/types';
 import { Search, CheckCircle2, Download, AlertCircle, Loader2 } from 'lucide-react';
+import PushNotificationManager from '@/components/common/PushNotificationManager';
 
 export default function OrderTracker() {
   const searchParams = useSearchParams();
@@ -126,6 +127,9 @@ export default function OrderTracker() {
               </button>
             </div>
           </div>
+
+          {/* Push Notifications Opt-In */}
+          <PushNotificationManager booking={activeOrder} />
 
           {/* Animated Timeline - Mobile optimized */}
           <div className="py-4">

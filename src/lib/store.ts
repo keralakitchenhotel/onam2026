@@ -475,7 +475,7 @@ export function useBookingStore() {
       totalAmount,
       paymentMethod: draft.paymentMethod,
       paymentStatus: paymentStatus,
-      orderStatus: 'Confirmed',
+      orderStatus: paymentStatus === 'paid' ? 'Confirmed' : 'Booked',
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${bookingNum}`,
       tokenNumber: draft.fulfillment === 'pickup' ? `PK-${Math.floor(10 + Math.random() * 90)}` : undefined,
       estimatedWaitMinutes: draft.fulfillment === 'pickup' ? 12 : undefined,
@@ -523,7 +523,7 @@ export function useBookingStore() {
           coupon_code: draft.couponCode || null,
           payment_method: draft.paymentMethod,
           payment_status: paymentStatus,
-          order_status: 'Confirmed',
+          order_status: paymentStatus === 'paid' ? 'Confirmed' : 'Booked',
           qr_code_url: newBooking.qrCodeUrl,
           token_number: newBooking.tokenNumber,
         }])

@@ -119,7 +119,7 @@ export default function AdminDashboard() {
   // ─────────────────── COMPUTED METRICS ───────────────────
   const totalRevenue = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
   const totalBookingsCount = bookings.length;
-  const pendingOrdersCount = bookings.filter((b) => b.orderStatus === 'Confirmed' || b.orderStatus === 'Preparing').length;
+  const pendingOrdersCount = bookings.filter((b) => b.orderStatus === 'Booked' || b.orderStatus === 'Confirmed' || b.orderStatus === 'Preparing').length;
   const completedOrdersCount = bookings.filter((b) => b.orderStatus === 'Delivered').length;
   const deliveryCount = bookings.filter((b) => b.fulfillment === 'delivery').length;
   const pickupCount = bookings.filter((b) => b.fulfillment === 'pickup').length;
@@ -297,6 +297,38 @@ export default function AdminDashboard() {
 
   const handleUpdateMenuItem = (id: string, fields: Partial<MenuItem>) => {
     setLocalMenuItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...fields } : item)));
+  };
+
+  const getWhatsAppRedirectUrl = (booking: Booking, status: OrderStatus) => {
+    const rawPhone = booking.customer.phone.replace(/[^0-9]/g, '');
+    const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+    let message = '';
+    switch (status) {
+      case 'Booked':
+        message = `Hello ${booking.customer.name}, we have received your Kerala Kitchen Onam Sadya pre-booking request #${booking.bookingNumber}. We will confirm it shortly. Track live at ${siteUrl}/track?id=${booking.bookingNumber}`;
+        break;
+      case 'Confirmed':
+        message = `Hello ${booking.customer.name}, your Kerala Kitchen Onam Sadya booking #${booking.bookingNumber} is confirmed! ${booking.tokenNumber ? `Your token number is ${booking.tokenNumber}.` : ''} Track live at ${siteUrl}/track?id=${booking.bookingNumber}`;
+        break;
+      case 'Preparing':
+        message = `Hello ${booking.customer.name}, our chefs have started preparing your Kerala Kitchen Onam Sadya feast! 🍛 Track live at ${siteUrl}/track?id=${booking.bookingNumber}`;
+        break;
+      case 'Ready':
+        message = `Hello ${booking.customer.name}, your hot Kerala Kitchen Onam Sadya #${booking.bookingNumber} is ready at the counter! ${booking.tokenNumber ? `Token: ${booking.tokenNumber}.` : ''} Please present your QR code for verification. Track live at ${siteUrl}/track?id=${booking.bookingNumber}`;
+        break;
+      case 'Out for Delivery':
+        message = `Hello ${booking.customer.name}, our delivery executive is on the way with your Kerala Kitchen Onam Sadya #${booking.bookingNumber}! ${booking.deliveryOtp ? `Verification OTP: ${booking.deliveryOtp}.` : ''} Please share this with the driver. Track live at ${siteUrl}/track?id=${booking.bookingNumber}`;
+        break;
+      case 'Delivered':
+        message = `Hello ${booking.customer.name}, your Kerala Kitchen Onam Sadya #${booking.bookingNumber} has been delivered. We wish you a happy and prosperous Onam celebration! 🌸🍛`;
+        break;
+      case 'Cancelled':
+        message = `Hello ${booking.customer.name}, your Kerala Kitchen Onam Sadya booking #${booking.bookingNumber} has been cancelled. Please contact support at 9447445078 / 9745627203 for queries.`;
+        break;
+    }
+    return `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
   };
 
   const statusOptions: OrderStatus[] = ['Booked', 'Confirmed', 'Preparing', 'Ready', 'Out for Delivery', 'Delivered', 'Cancelled'];
@@ -1316,21 +1348,33 @@ export default function AdminDashboard() {
                   <h3 className="text-[10px] font-bold uppercase text-slate-500">Quick Status Update</h3>
                   <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
                     {statusOptions.map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => {
-                          updateOrderStatus(inspectBooking.id, st);
-                          setInspectBooking({ ...inspectBooking, orderStatus: st });
-                        }}
-                        className={`py-2.5 px-2 rounded-xl text-[10px] font-bold border transition-all flex flex-col items-center gap-0.5 ${
-                          inspectBooking.orderStatus === st
-                            ? 'bg-leaf text-white border-leaf shadow'
-                            : 'bg-white border-slate-200 hover:border-leaf text-slate-700'
-                        }`}
-                      >
-                        <span>{getStatusDot(st)}</span>
-                        <span>{st}</span>
-                      </button>
+                      <div key={st} className="flex flex-col gap-1.5">
+                        <button
+                          onClick={() => {
+                            updateOrderStatus(inspectBooking.id, st);
+                            setInspectBooking({ ...inspectBooking, orderStatus: st });
+                          }}
+                          className={`py-2 px-1 rounded-xl text-[10px] font-bold border transition-all flex flex-col items-center gap-0.5 w-full ${
+                            inspectBooking.orderStatus === st
+                              ? 'bg-leaf text-white border-leaf shadow'
+                              : 'bg-white border-slate-200 hover:border-leaf text-slate-700'
+                          }`}
+                        >
+                          <span>{getStatusDot(st)}</span>
+                          <span>{st}</span>
+                        </button>
+                        <a
+                          href={getWhatsAppRedirectUrl(inspectBooking, st)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="py-1 px-1 rounded-lg text-[9px] font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-center flex items-center justify-center gap-1 transition"
+                        >
+                          <svg className="w-2.5 h-2.5 text-emerald-600 fill-emerald-600 shrink-0" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.09-3.974c1.682.998 3.447 1.524 5.3 1.525 5.617 0 10.187-4.577 10.19-10.196.002-2.722-1.054-5.28-2.973-7.202C16.745 2.23 14.19 1.171 11.472 1.17 5.856 1.17 1.284 5.744 1.281 11.362c-.001 1.95.51 3.849 1.482 5.56l-.979 3.578 3.673-.964z" />
+                          </svg>
+                          WhatsApp
+                        </a>
+                      </div>
                     ))}
                   </div>
                 </div>

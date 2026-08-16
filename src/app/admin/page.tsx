@@ -38,7 +38,7 @@ export default function AdminPage() {
   // If authenticated as admin → show dashboard
   if (isAuthenticated && user?.role === 'admin') {
     return (
-      <div className="pt-28 pb-20 bg-coconut-50 min-h-screen">
+      <div className="pt-6 pb-20 bg-coconut-50 min-h-screen">
         <AdminDashboard />
       </div>
     );
@@ -46,7 +46,7 @@ export default function AdminPage() {
 
   // Not authenticated (or non-admin role being redirected) → show unified login
   return (
-    <div className="pt-28 pb-20 min-h-screen relative overflow-hidden bg-coconut-50">
+    <div className="pt-6 pb-20 min-h-screen relative overflow-hidden bg-coconut-50">
       <div className="absolute bottom-10 right-10 opacity-[0.03] pointer-events-none animate-pookalam">
         <PookalamMandala size={280} />
       </div>

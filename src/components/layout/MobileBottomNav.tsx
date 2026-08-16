@@ -4,9 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Utensils, Calendar, ClipboardList } from 'lucide-react';
 import { SadyaThaliIcon } from '@/components/common/SvgIcons';
+import { isPortalPath } from '@/lib/navigation';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+
+  if (isPortalPath(pathname)) return null;
 
   const navItems = [
     { href: '/', icon: Home, label: 'Home' },

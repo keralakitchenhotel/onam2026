@@ -86,7 +86,7 @@ export default function BookingWizard() {
 
   const activeSadya = SADYA_MENU_ITEMS.find((s) => s.id === (sadyaParam || draft.selectedSadyaId)) || SADYA_MENU_ITEMS[0];
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 8));
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const adultPrice = activeSadya.price;
@@ -150,12 +150,12 @@ export default function BookingWizard() {
   const handleFinalPayment = async () => {
     if (!draft.customerName || !draft.customerPhone || !draft.customerEmail) {
       alert('Please fill in your Name, Phone Number, and Email before proceeding.');
-      setCurrentStep(5);
+      setCurrentStep(4);
       return;
     }
     if (draft.fulfillment === 'delivery' && !draft.customerAddress) {
       alert('Please provide your complete Delivery Address.');
-      setCurrentStep(5);
+      setCurrentStep(4);
       return;
     }
 
@@ -266,9 +266,9 @@ export default function BookingWizard() {
     }
   };
 
-  // Mobile: show location as bottom sheet on step 5
+  // Mobile: show location as bottom sheet on step 4
   useEffect(() => {
-    if (currentStep === 5 && draft.fulfillment === 'delivery') {
+    if (currentStep === 4 && draft.fulfillment === 'delivery') {
       setShowLocationSheet(true);
     } else {
       setShowLocationSheet(false);
@@ -279,11 +279,10 @@ export default function BookingWizard() {
     { num: 1, label: 'Date' },
     { num: 2, label: 'Slot & Mode' },
     { num: 3, label: 'Quantities' },
-    { num: 4, label: 'Extras' },
-    { num: 5, label: 'Auth & Location' },
-    { num: 6, label: 'Offers' },
-    { num: 7, label: 'Payment' },
-    { num: 8, label: 'Confirmed' },
+    { num: 4, label: 'Auth & Location' },
+    { num: 5, label: 'Offers' },
+    { num: 6, label: 'Payment' },
+    { num: 7, label: 'Confirmed' },
   ];
 
   return (
@@ -295,8 +294,8 @@ export default function BookingWizard() {
           {steps.map((s, i) => (
             <button
               key={s.num}
-              onClick={() => i + 1 < currentStep && currentStep !== 8 && setCurrentStep(i + 1)}
-              disabled={currentStep === 8 || i + 1 > currentStep}
+              onClick={() => i + 1 < currentStep && currentStep !== 7 && setCurrentStep(i + 1)}
+              disabled={currentStep === 7 || i + 1 > currentStep}
               className={`w-2.5 h-2.5 rounded-full transition-all ${
                 i === currentStep - 1
                   ? 'bg-leaf w-8'
@@ -308,7 +307,7 @@ export default function BookingWizard() {
             />
           ))}
           <span className="text-xs font-bold text-leaf-dark ml-2">
-            Step {currentStep} of 8
+            Step {currentStep} of 7
           </span>
         </div>
         
@@ -318,8 +317,8 @@ export default function BookingWizard() {
             {steps.map((s) => (
               <button
                 key={s.num}
-                onClick={() => s.num < currentStep && currentStep !== 8 && setCurrentStep(s.num)}
-                disabled={currentStep === 8 || s.num > currentStep}
+                onClick={() => s.num < currentStep && currentStep !== 7 && setCurrentStep(s.num)}
+                disabled={currentStep === 7 || s.num > currentStep}
                 className={`flex flex-col items-center min-w-[64px] transition-colors ${
                   s.num === currentStep
                     ? 'text-leaf-dark font-bold'
@@ -346,7 +345,7 @@ export default function BookingWizard() {
           <div className="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
             <div
               className="bg-gradient-to-r from-gold via-leaf to-leaf-dark h-full transition-all duration-300"
-              style={{ width: `${(currentStep / 8) * 100}%` }}
+              style={{ width: `${(currentStep / 7) * 100}%` }}
             />
           </div>
         </div>
@@ -358,7 +357,7 @@ export default function BookingWizard() {
         {currentStep === 1 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 1 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 1 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Choose Festival Date
               </h2>
@@ -410,7 +409,7 @@ export default function BookingWizard() {
         {currentStep === 2 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 2 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 2 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Fulfillment Mode & Slot
               </h2>
@@ -508,7 +507,7 @@ export default function BookingWizard() {
         {currentStep === 3 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 3 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 3 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Meal Quantities & Pax
               </h2>
@@ -577,77 +576,6 @@ export default function BookingWizard() {
                 onClick={nextStep}
                 className="bg-leaf hover:bg-leaf-dark text-white font-bold px-8 py-3.5 rounded-full shadow-md flex items-center gap-2 touch-target"
               >
-                <span>Add Payasam & Extras</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: Payasam & Extras */}
-        {currentStep === 4 && (
-          <div className="space-y-6 animate-fade-up">
-            <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 4 of 8</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
-                Add Extra Payasam & Savories
-              </h2>
-              <p className="text-sm text-slate-600">All 23 delicacies from the official poster are included in your package.</p>
-            </div>
-
-            {EXTRAS_MENU.length > 0 ? (
-              <div className="space-y-3">
-                {EXTRAS_MENU.map((extra) => {
-                  const qty = draft.extras[extra.id] || 0;
-                  return (
-                    <div key={extra.id} className="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between">
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{extra.name}</h4>
-                        <span className="font-serif font-extrabold text-leaf text-sm">{formatINR(extra.price)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {qty > 0 && (
-                          <button
-                            onClick={() => handleExtraQtyChange(extra.id, -1)}
-                            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 font-bold touch-target"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                        )}
-                        <span className={`font-serif text-base font-bold min-w-[20px] text-center ${qty > 0 ? 'text-leaf-dark' : 'text-slate-400'}`}>
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => handleExtraQtyChange(extra.id, 1)}
-                          className="w-10 h-10 rounded-full bg-gold text-slate-900 hover:bg-gold-warm flex items-center justify-center font-bold touch-target"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="p-6 bg-coconut-100 rounded-2xl border border-gold/30 text-center space-y-2">
-                <CheckCircle2 className="w-8 h-8 text-leaf mx-auto" />
-                <p className="font-serif font-bold text-leaf-dark text-base">Complete 23-Item Sadya Included!</p>
-                <p className="text-xs text-slate-600">Your selected Sadya package contains all 23 traditional delicacies listed on the official Kerala Kitchen poster.</p>
-              </div>
-            )}
-
-            <div className="flex justify-between pt-4 border-t border-slate-100">
-              <button
-                onClick={prevStep}
-                className="text-slate-600 hover:text-slate-900 font-semibold px-6 py-3 rounded-full flex items-center gap-2 touch-target"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-              <button
-                onClick={nextStep}
-                className="bg-leaf hover:bg-leaf-dark text-white font-bold px-8 py-3.5 rounded-full shadow-md flex items-center gap-2 touch-target"
-              >
                 <span>Auth & Location Capture</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -655,11 +583,11 @@ export default function BookingWizard() {
           </div>
         )}
 
-        {/* STEP 5: Auth Choice, Contact & Dual Location Capture */}
-        {currentStep === 5 && (
+        {/* STEP 4: Auth Choice, Contact & Dual Location Capture */}
+        {currentStep === 4 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 5 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 4 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Customer & Delivery Location
               </h2>
@@ -811,11 +739,11 @@ export default function BookingWizard() {
           />
         </BottomSheet>
 
-        {/* STEP 6: Coupon & Summary */}
-        {currentStep === 6 && (
+        {/* STEP 5: Coupon & Summary */}
+        {currentStep === 5 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 6 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 5 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Apply Promo Coupons
               </h2>
@@ -905,11 +833,11 @@ export default function BookingWizard() {
           </div>
         )}
 
-        {/* STEP 7: Payment Options */}
-        {currentStep === 7 && (
+        {/* STEP 6: Payment Options */}
+        {currentStep === 6 && (
           <div className="space-y-6 animate-fade-up">
             <div className="border-b border-slate-100 pb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 7 of 8</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-maroon">Step 6 of 7</span>
               <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark">
                 Choose Payment Method
               </h2>
@@ -1003,8 +931,8 @@ export default function BookingWizard() {
           </div>
         )}
 
-        {/* STEP 8: Confirmation Screen & Guest -> Google Conversion */}
-        {currentStep === 8 && confirmedBooking && (
+        {/* STEP 7: Confirmation Screen & Guest -> Google Conversion */}
+        {currentStep === 7 && confirmedBooking && (
           <div className="space-y-6 text-center animate-fade-up py-4">
             <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-lg border-2 border-emerald-400">
               <CheckCircle2 className="w-12 h-12" />

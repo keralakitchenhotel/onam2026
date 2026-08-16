@@ -5,7 +5,7 @@ import { PookalamMandala } from '@/components/landing/KeralaDecorations';
 
 export default function LoginPage() {
   return (
-    <div className="pt-28 pb-20 min-h-screen relative overflow-hidden">
+    <div className="pt-6 pb-20 min-h-screen relative overflow-hidden">
       {/* Background Pookalam */}
       <div className="absolute bottom-10 right-10 opacity-[0.03] pointer-events-none animate-pookalam">
         <PookalamMandala size={280} />

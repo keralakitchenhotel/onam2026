@@ -6,7 +6,46 @@ function formatCurrencyHtml(amount: number) {
   return `&#8377;${amount.toLocaleString('en-IN')}`;
 }
 
-// Send email via Resend HTTP API (fetch-based, Cloudflare Workers compatible)
+// Generate Rich Customer Confirmation Email HTML
+function getCustomerConfirmationHtml(booking: Booking, headerHtml: string, footerHtml: string) {
+  return `
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; font-family: sans-serif; line-height: 1.6; color: #333;">
+      ${headerHtml}
+      <div style="padding: 24px; background-color: #ffffff;">
+        <p style="font-size: 16px; margin-top: 0;">Dear <strong>${booking.customer.name}</strong>,</p>
+        <p style="font-size: 15px;">Your pre-booking for authentic Kerala Kitchen Onam Sadya is <strong>confirmed</strong>!</p>
+        
+        <div style="background-color: #FFF8E1; border: 1px solid #FFE082; padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
+          <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #B78103; display: block; letter-spacing: 0.5px;">Booking ID</span>
+          <strong style="font-size: 22px; font-family: monospace; color: #2E7D32; display: block; margin: 4px 0;">${booking.bookingNumber}</strong>
+          ${booking.tokenNumber ? `<span style="font-size: 12px; font-weight: bold; background-color: #2E7D32; color: white; padding: 3px 10px; border-radius: 10px; display: inline-block;">Token: ${booking.tokenNumber}</span>` : ''}
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Date:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.date}</td></tr>
+          <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Time Slot:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.timeSlot}</td></tr>
+          <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Fulfillment:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
+          <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Sadya Package:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
+          ${booking.extras && booking.extras.length > 0 ? `<tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Extras:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.extras.map(e => `${e.name} (x${e.quantity})`).join(', ')}</td></tr>` : ''}
+          <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Total Paid:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; color: #2E7D32; font-size: 16px;">${formatCurrencyHtml(booking.totalAmount)}</td></tr>
+        </table>
+
+        ${booking.fulfillment === 'delivery' && booking.deliveryOtp ? `
+          <div style="background-color: #E8F5E9; border: 1px solid #C8E6C9; padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
+            <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #2E7D32; display: block; letter-spacing: 0.5px;">Delivery Verification OTP</span>
+            <strong style="font-size: 26px; font-family: monospace; color: #1B5E20; display: block; letter-spacing: 6px; margin: 4px 0; padding-left: 6px;">${booking.deliveryOtp}</strong>
+            <span style="font-size: 11px; color: #388E3C; display: block;">Provide this 4-digit code to the delivery driver to verify receipt.</span>
+          </div>
+        ` : ''}
+
+        <p style="font-size: 14px; color: #555;">To track your order status in real time, check your customer dashboard at <a href="${process.env.NEXT_PUBLIC_SITE_URL}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Live Tracker</a>.</p>
+      </div>
+      ${footerHtml}
+    </div>
+  `;
+}
+
+// Send email via Resend HTTP API
 async function sendEmail(opts: { to: string; subject: string; html: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'Kerala Kitchen <onboarding@resend.dev>';
@@ -39,6 +78,129 @@ async function sendEmail(opts: { to: string; subject: string; html: string }) {
   return await response.json();
 }
 
+// Self-sign JWT for Google Cloud API Auth
+async function getFcmAccessToken(serviceAccount: { client_email: string; private_key: string }) {
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    iss: serviceAccount.client_email,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const pem = serviceAccount.private_key
+    .replace(/\\n/g, '\n')
+    .replace('-----BEGIN PRIVATE KEY-----', '')
+    .replace('-----END PRIVATE KEY-----', '')
+    .replace(/\s/g, '');
+  
+  const keyBuffer = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    keyBuffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const base64UrlEncode = (str: string) => {
+    return btoa(str).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signatureInput = `${encodedHeader}.${encodedPayload}`;
+
+  const encoder = new TextEncoder();
+  const signatureBuffer = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    encoder.encode(signatureInput)
+  );
+
+  const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
+    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+
+  const jwt = `${signatureInput}.${signatureBase64}`;
+
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google OAuth token exchange failed: ${response.status} ${errorText}`);
+  }
+
+  const data = (await response.json()) as { access_token: string };
+  return data.access_token;
+}
+
+// Send Push Notification via Firebase Messaging REST API
+async function sendPushNotification(opts: { token: string; title: string; body: string; link: string }) {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!serviceAccountJson) {
+    console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT_JSON not found. Operating in push sandbox logging mode.');
+    console.log(`[PUSH SANDBOX LOG] Simulated push to: "${opts.token}" | title: "${opts.title}" | body: "${opts.body}" | link: "${opts.link}"`);
+    return { sandbox: true };
+  }
+
+  try {
+    let serviceAccount;
+    if (serviceAccountJson.trim().startsWith('{')) {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } else {
+      serviceAccount = JSON.parse(atob(serviceAccountJson));
+    }
+
+    const accessToken = await getFcmAccessToken(serviceAccount);
+    const projectId = serviceAccount.project_id;
+
+    const response = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: {
+          token: opts.token,
+          notification: {
+            title: opts.title,
+            body: opts.body,
+          },
+          data: {
+            link: opts.link,
+          },
+          webpush: {
+            fcm_options: {
+              link: opts.link,
+            },
+          },
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`FCM API response failed ${response.status}: ${errText}`);
+    }
+
+    return await response.json();
+  } catch (err: any) {
+    console.error('❌ Failed to dispatch push notification:', err);
+    return { error: err.message };
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { booking, type } = (await request.json()) as { booking: Booking; type: 'new_booking' | 'status_update' };
@@ -48,6 +210,29 @@ export async function POST(request: Request) {
     }
 
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@keralakitchen.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+    // Fetch FCM token from request or fallback to query from DB
+    let fcmToken = (booking as any).fcmToken || (booking as any).fcm_token;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    if (!fcmToken && supabaseUrl && supabaseAnonKey) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const { data } = await supabase
+          .from('bookings')
+          .select('fcm_token')
+          .eq('id', booking.id)
+          .single();
+        if (data?.fcm_token) {
+          fcmToken = data.fcm_token;
+        }
+      } catch (dbErr) {
+        console.warn('FCM token lookup in database failed:', dbErr);
+      }
+    }
 
     // HTML Email template parts
     const headerHtml = `
@@ -65,46 +250,11 @@ export async function POST(request: Request) {
       </div>
     `;
 
+    const emailActions: Promise<any>[] = [];
+    const pushActions: Promise<any>[] = [];
+
     if (type === 'new_booking') {
-      // 1. Customer Confirmation Email
-      const customerSubject = `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`;
-      const customerHtml = `
-        <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; font-family: sans-serif; line-height: 1.6; color: #333;">
-          ${headerHtml}
-          <div style="padding: 24px; background-color: #ffffff;">
-            <p style="font-size: 16px; margin-top: 0;">Dear <strong>${booking.customer.name}</strong>,</p>
-            <p style="font-size: 15px;">Your pre-booking for authentic Kerala Kitchen Onam Sadya is <strong>confirmed</strong>!</p>
-            
-            <div style="background-color: #FFF8E1; border: 1px solid #FFE082; padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
-              <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #B78103; display: block; letter-spacing: 0.5px;">Booking ID</span>
-              <strong style="font-size: 22px; font-family: monospace; color: #2E7D32; display: block; margin: 4px 0;">${booking.bookingNumber}</strong>
-              ${booking.tokenNumber ? `<span style="font-size: 12px; font-weight: bold; background-color: #2E7D32; color: white; padding: 3px 10px; border-radius: 10px; display: inline-block;">Token: ${booking.tokenNumber}</span>` : ''}
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
-              <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Date:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.date}</td></tr>
-              <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Time Slot:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.timeSlot}</td></tr>
-              <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Fulfillment:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
-              <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Sadya Package:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
-              ${booking.extras.length > 0 ? `<tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Extras:</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.extras.map(e => `${e.name} (x${e.quantity})`).join(', ')}</td></tr>` : ''}
-              <tr style="border-bottom: 1px solid #f1f1f1;"><td style="padding: 8px 0; color: #666;">Total Paid:</td><td style="padding: 8px 0; font-weight: bold; text-align: right; color: #2E7D32; font-size: 16px;">${formatCurrencyHtml(booking.totalAmount)}</td></tr>
-            </table>
-
-            ${booking.fulfillment === 'delivery' && booking.deliveryOtp ? `
-              <div style="background-color: #E8F5E9; border: 1px solid #C8E6C9; padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
-                <span style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #2E7D32; display: block; letter-spacing: 0.5px;">Delivery Verification OTP</span>
-                <strong style="font-size: 26px; font-family: monospace; color: #1B5E20; display: block; letter-spacing: 6px; margin: 4px 0; padding-left: 6px;">${booking.deliveryOtp}</strong>
-                <span style="font-size: 11px; color: #388E3C; display: block;">Provide this 4-digit code to the delivery driver to verify receipt.</span>
-              </div>
-            ` : ''}
-
-            <p style="font-size: 14px; color: #555;">To track your order status in real time, check your customer dashboard at <a href="${process.env.NEXT_PUBLIC_SITE_URL}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Live Tracker</a>.</p>
-          </div>
-          ${footerHtml}
-        </div>
-      `;
-
-      // 2. Admin Alert Email
+      // 1. Admin Alert Email (always dispatched for new requests)
       const adminSubject = `🚨 New Booking Alert: #${booking.bookingNumber} (${booking.customer.name})`;
       const adminHtml = `
         <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; font-family: sans-serif; line-height: 1.6; color: #333;">
@@ -127,73 +277,110 @@ export async function POST(request: Request) {
               <tr><td style="padding: 6px 0; color: #666;">Name:</td><td style="padding: 6px 0; font-weight: bold;">${booking.customer.name}</td></tr>
               <tr><td style="padding: 6px 0; color: #666;">Phone:</td><td style="padding: 6px 0; font-weight: bold;"><a href="tel:${booking.customer.phone}">${booking.customer.phone}</a></td></tr>
               <tr><td style="padding: 6px 0; color: #666;">Email:</td><td style="padding: 6px 0; font-weight: bold;">${booking.customer.email}</td></tr>
-              ${booking.fulfillment === 'delivery' ? `
-                <tr><td style="padding: 6px 0; color: #666;">Address:</td><td style="padding: 6px 0; font-weight: bold;">${booking.deliveryAddress || booking.customer.address}</td></tr>
-                <tr><td style="padding: 6px 0; color: #666;">Landmark:</td><td style="padding: 6px 0; font-weight: bold;">${booking.landmark || booking.customer.landmark || 'None'}</td></tr>
-              ` : ''}
             </table>
 
             <p style="text-align: center; margin-top: 25px;">
-              <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin" style="background-color: #8E2430; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Manage in Admin Panel</a>
+              <a href="${siteUrl}/admin" style="background-color: #8E2430; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Manage in Admin Panel</a>
             </p>
           </div>
           ${footerHtml}
         </div>
       `;
 
-      // Dispatch both emails in parallel
-      await Promise.all([
-        sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml }),
-        sendEmail({ to: adminEmail, subject: adminSubject, html: adminHtml }),
-      ]);
+      emailActions.push(sendEmail({ to: adminEmail, subject: adminSubject, html: adminHtml }));
+
+      // 2. Customer Confirmation Email & Push Notification (only if booking is immediately confirmed / paid online)
+      if (booking.orderStatus === 'Confirmed') {
+        const customerSubject = `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`;
+        const customerHtml = getCustomerConfirmationHtml(booking, headerHtml, footerHtml);
+        
+        emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml }));
+
+        if (fcmToken) {
+          pushActions.push(sendPushNotification({
+            token: fcmToken,
+            title: 'Pre-Booking Confirmed! 🍛',
+            body: `Your Kerala Kitchen Onam Sadya order #${booking.bookingNumber} is confirmed!`,
+            link: `${siteUrl}/track?id=${booking.bookingNumber}`,
+          }));
+        }
+      }
     } else if (type === 'status_update') {
-      // 3. Status Transition Notification Email
-      const statusSubject = `🍛 Onam Sadya Order #${booking.bookingNumber} Status: ${booking.orderStatus}`;
-      
-      const statusDetails = {
-        'Confirmed': 'Your booking is confirmed. We will begin preparation on festival day.',
-        'Preparing': 'Our chefs have started preparing your feast in the kitchen!',
-        'Ready': 'Your hot Sadya is ready at the counter!',
-        'Out for Delivery': 'Our delivery executive is on the way to your doorstep!',
-        'Delivered': 'Order delivered! We wish you a happy and prosperous Onam celebration.',
-        'Cancelled': 'Your booking has been cancelled. Contact support for refund inquiries.',
-        'Booked': 'Your pre-booking request has been logged.',
-      }[booking.orderStatus] || `Your order status has been updated to ${booking.orderStatus}.`;
+      // If status changed to Confirmed, send the rich Customer Confirmation Email (previously skipped for Cash/COD)
+      if (booking.orderStatus === 'Confirmed') {
+        const customerSubject = `🍛 Booking Confirmed! Onam Sadya Order #${booking.bookingNumber}`;
+        const customerHtml = getCustomerConfirmationHtml(booking, headerHtml, footerHtml);
+        
+        emailActions.push(sendEmail({ to: booking.customer.email, subject: customerSubject, html: customerHtml }));
 
-      const customerHtml = `
-        <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; font-family: sans-serif; line-height: 1.6; color: #333;">
-          ${headerHtml}
-          <div style="padding: 24px; background-color: #ffffff;">
-            <p style="font-size: 16px; margin-top: 0;">Dear <strong>${booking.customer.name}</strong>,</p>
-            <p style="font-size: 15px;">We have updated the status of your Kerala Kitchen Onam Sadya order.</p>
+        if (fcmToken) {
+          pushActions.push(sendPushNotification({
+            token: fcmToken,
+            title: 'Pre-Booking Confirmed! 🍛',
+            body: `Your Kerala Kitchen Onam Sadya order #${booking.bookingNumber} is confirmed!`,
+            link: `${siteUrl}/track?id=${booking.bookingNumber}`,
+          }));
+        }
+      } else {
+        // Send standard status update email
+        const statusSubject = `🍛 Onam Sadya Order #${booking.bookingNumber} Status: ${booking.orderStatus}`;
+        const statusDetails = {
+          'Confirmed': 'Your booking is confirmed. We will begin preparation on festival day.',
+          'Preparing': 'Our chefs have started preparing your feast in the kitchen!',
+          'Ready': 'Your hot Sadya is ready at the counter!',
+          'Out for Delivery': 'Our delivery executive is on the way to your doorstep!',
+          'Delivered': 'Order delivered! We wish you a happy and prosperous Onam celebration.',
+          'Cancelled': 'Your booking has been cancelled. Contact support for refund inquiries.',
+          'Booked': 'Your pre-booking request has been logged.',
+        }[booking.orderStatus] || `Your order status has been updated to ${booking.orderStatus}.`;
 
-            <div style="background-color: #f1f8e9; border-left: 4px solid #2e7d32; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <span style="font-size: 10px; font-bold; text-transform: uppercase; color: #666; display: block;">Current Order Status</span>
-              <strong style="font-size: 18px; color: #2e7d32; display: block; margin: 2px 0;">✨ ${booking.orderStatus}</strong>
-              <p style="margin: 5px 0 0 0; font-size: 13px; color: #555;">${statusDetails}</p>
+        const customerHtml = `
+          <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px; font-family: sans-serif; line-height: 1.6; color: #333;">
+            ${headerHtml}
+            <div style="padding: 24px; background-color: #ffffff;">
+              <p style="font-size: 16px; margin-top: 0;">Dear <strong>${booking.customer.name}</strong>,</p>
+              <p style="font-size: 15px;">We have updated the status of your Kerala Kitchen Onam Sadya order.</p>
+
+              <div style="background-color: #f1f8e9; border-left: 4px solid #2e7d32; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <span style="font-size: 10px; font-bold; text-transform: uppercase; color: #666; display: block;">Current Order Status</span>
+                <strong style="font-size: 18px; color: #2e7d32; display: block; margin: 2px 0;">✨ ${booking.orderStatus}</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #555;">${statusDetails}</p>
+              </div>
+
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; color: #555;">
+                <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Order Reference:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.bookingNumber}</td></tr>
+                <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Fulfillment Mode:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
+                <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Package Details:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
+                ${booking.fulfillment === 'delivery' && booking.deliveryOtp && booking.orderStatus === 'Out for Delivery' ? `
+                  <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0; color: #1b5e20;">Doorstep Delivery OTP:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; color: #1b5e20; font-family: monospace; font-size: 15px; letter-spacing: 1px;">${booking.deliveryOtp}</td></tr>
+                ` : ''}
+              </table>
+
+              <p style="font-size: 14px;">View live details on our <a href="${siteUrl}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Pre-Booking Tracker</a>.</p>
             </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; color: #555;">
-              <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Order Reference:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.bookingNumber}</td></tr>
-              <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Fulfillment Mode:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; text-transform: uppercase;">${booking.fulfillment}</td></tr>
-              <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0;">Package Details:</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${booking.sadyaItem.name} (${booking.quantity.adults} Pax)</td></tr>
-              ${booking.fulfillment === 'delivery' && booking.deliveryOtp && booking.orderStatus === 'Out for Delivery' ? `
-                <tr style="border-bottom: 1px solid #f9f9f9;"><td style="padding: 6px 0; color: #1b5e20;">Doorstep Delivery OTP:</td><td style="padding: 6px 0; font-weight: bold; text-align: right; color: #1b5e20; font-family: monospace; font-size: 15px; letter-spacing: 1px;">${booking.deliveryOtp}</td></tr>
-              ` : ''}
-            </table>
-
-            <p style="font-size: 14px;">View live details on our <a href="${process.env.NEXT_PUBLIC_SITE_URL}/track?id=${booking.bookingNumber}" style="color: #2E7D32; font-weight: bold; text-decoration: underline;">Pre-Booking Tracker</a>.</p>
+            ${footerHtml}
           </div>
-          ${footerHtml}
-        </div>
-      `;
+        `;
 
-      await sendEmail({ to: booking.customer.email, subject: statusSubject, html: customerHtml });
+        emailActions.push(sendEmail({ to: booking.customer.email, subject: statusSubject, html: customerHtml }));
+
+        if (fcmToken) {
+          pushActions.push(sendPushNotification({
+            token: fcmToken,
+            title: `Order Status: ${booking.orderStatus} ✨`,
+            body: statusDetails,
+            link: `${siteUrl}/track?id=${booking.bookingNumber}`,
+          }));
+        }
+      }
     }
+
+    // Await all dispatches in parallel
+    await Promise.all([...emailActions, ...pushActions]);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('❌ Email dispatcher crashed:', error);
-    return NextResponse.json({ error: error.message || 'Email Dispatch Error' }, { status: 500 });
+    console.error('❌ Notification dispatcher crashed:', error);
+    return NextResponse.json({ error: error.message || 'Notification Dispatch Error' }, { status: 500 });
   }
 }

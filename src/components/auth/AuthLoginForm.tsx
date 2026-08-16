@@ -285,23 +285,6 @@ export default function AuthLoginForm({ mode }: AuthLoginFormProps) {
           </form>
         )}
 
-        {/* Credentials Hint */}
-        {hintCredentials.length > 0 && (
-          <div className="mt-6 bg-coconut-100 border border-dashed border-gold/40 rounded-2xl p-4 space-y-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 text-center">
-              {isCustomerMode ? 'Demo Credentials' : 'Available Logins'}
-            </p>
-            {hintCredentials.map((cred) => (
-              <div key={cred.email} className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-600">
-                {roleIcons[cred.role] || <Sparkles className="w-3.5 h-3.5 text-gold" />}
-                <span className="text-slate-500">{ROLE_LABELS[cred.role]}:</span>
-                <code className="font-mono text-leaf-dark">{cred.email}</code>
-                <span className="text-slate-300">/</span>
-                <code className="font-mono text-maroon">{cred.password}</code>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
