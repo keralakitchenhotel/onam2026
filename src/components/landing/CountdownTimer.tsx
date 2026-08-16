@@ -101,7 +101,7 @@ export default function CountdownTimer() {
                 <span className="font-serif text-2xl sm:text-3xl font-extrabold text-leaf-dark tabular-nums animate-count-pulse">
                   {mounted ? String(unit.value).padStart(2, '0') : '--'}
                 </span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.15em] mt-0.5">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mt-0.5">
                   {unit.label}
                 </span>
               </div>

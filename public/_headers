@@ -1,0 +1,19 @@
+# Static asset caching headers for Cloudflare Workers
+# See https://opennext.js.org/cloudflare/get-started#static-assets
+
+# Cache images for one month
+/images/*
+  Cache-Control: public, max-age=2592000, immutable
+
+# Cache favicon and manifest for one day
+/favicon.ico
+/manifest.json
+  Cache-Control: public, max-age=86400, immutable
+
+# Cache fonts for one year
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Never cache HTML
+/*
+  Cache-Control: no-cache

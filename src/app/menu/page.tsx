@@ -36,7 +36,7 @@ export default function MenuPage() {
             <SadyaThaliIcon className="w-7 h-7" />
             <span>Sadya Feast Packages</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {SADYA_MENU_ITEMS.map((item) => (
               <MenuCard key={item.id} item={item} />
             ))}
@@ -45,44 +45,46 @@ export default function MenuPage() {
 
         <KasavuStrip />
 
-        {/* Payasam & Extras */}
-        <div className="bg-white border border-gold/30 rounded-[2rem] p-6 sm:p-10 shadow-soft space-y-8 relative overflow-hidden">
-          {/* Decorative corner */}
-          <div className="absolute -top-6 -right-6 opacity-[0.06] pointer-events-none">
-            <PookalamMandala size={160} />
-          </div>
+        {/* Payasam & Extras (if configured) */}
+        {EXTRAS_MENU.length > 0 && (
+          <div className="bg-white border border-gold/30 rounded-[2rem] p-6 sm:p-10 shadow-soft space-y-8 relative overflow-hidden">
+            {/* Decorative corner */}
+            <div className="absolute -top-6 -right-6 opacity-[0.06] pointer-events-none">
+              <PookalamMandala size={160} />
+            </div>
 
-          <div>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-leaf-dark flex items-center gap-3">
-              <DessertPayasamIcon className="w-7 h-7 text-gold-deep" />
-              <span>Payasam & Extra Add-ons</span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-2">
-              Order additional liters of golden Payasam, crispy Kerala Banana Chips, or aromatic Inji Puli. Perfect for larger celebrations.
-            </p>
-          </div>
+            <div>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-leaf-dark flex items-center gap-3">
+                <DessertPayasamIcon className="w-7 h-7 text-gold-deep" />
+                <span>Payasam & Extra Add-ons</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-2">
+                Order additional portions of golden Payasam or savories.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {EXTRAS_MENU.map((ext) => (
-              <div
-                key={ext.id}
-                className="p-5 bg-coconut-50 rounded-2xl border border-gold/25 flex flex-col justify-between space-y-4 hover:shadow-gold hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm leading-snug group-hover:text-leaf-dark transition-colors">{ext.name}</h4>
-                  <span className="font-serif font-extrabold text-leaf text-xl mt-1 block">{formatINR(ext.price)}</span>
-                </div>
-                <Link
-                  href="/book"
-                  className="w-full bg-gradient-to-r from-gold/15 to-gold/25 hover:from-gold/30 hover:to-gold/50 text-slate-900 border border-gold/40 text-xs font-bold py-2.5 rounded-xl text-center transition-all shadow-sm flex items-center justify-center gap-1.5"
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {EXTRAS_MENU.map((ext) => (
+                <div
+                  key={ext.id}
+                  className="p-5 bg-coconut-50 rounded-2xl border border-gold/25 flex flex-col justify-between space-y-4 hover:shadow-gold hover:-translate-y-1 transition-all duration-300 group"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Add to Booking</span>
-                </Link>
-              </div>
-            ))}
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm leading-snug group-hover:text-leaf-dark transition-colors">{ext.name}</h4>
+                    <span className="font-serif font-extrabold text-leaf text-xl mt-1 block">{formatINR(ext.price)}</span>
+                  </div>
+                  <Link
+                    href="/book"
+                    className="w-full bg-gradient-to-r from-gold/15 to-gold/25 hover:from-gold/30 hover:to-gold/50 text-slate-900 border border-gold/40 text-xs font-bold py-2.5 rounded-xl text-center transition-all shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>Add to Booking</span>
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'staff' | 'customer';
+export type UserRole = 'admin' | 'staff' | 'customer' | 'driver';
 
 export interface AuthUser {
   id?: string;
@@ -34,13 +34,6 @@ export interface SavedAddress {
   longitude?: number;
   isDefault?: boolean;
   createdAt?: string;
-}
-
-export interface CredentialsEntry {
-  username: string;
-  password: string;
-  name: string;
-  role: UserRole;
 }
 
 export type FulfillmentType = 'pickup' | 'delivery';

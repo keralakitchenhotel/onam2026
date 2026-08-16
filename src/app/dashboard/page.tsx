@@ -1,20 +1,33 @@
 'use client';
 
-import { Suspense } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import CustomerDashboard from '@/components/customer/CustomerDashboard';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== 'customer')) {
+      router.replace('/login');
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  if (isLoading || !isAuthenticated || user?.role !== 'customer') {
+    return (
+      <div className="min-h-screen bg-coconut-50 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-8 h-8 text-gold animate-spin" />
+        <p className="text-xs font-semibold text-slate-500">Checking session...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-28 pb-20 bg-coconut-50 min-h-screen">
-      <Suspense
-        fallback={
-          <div className="py-20 text-center text-slate-500 font-serif text-lg">
-            Loading Customer Dashboard...
-          </div>
-        }
-      >
-        <CustomerDashboard />
-      </Suspense>
+      <CustomerDashboard />
     </div>
   );
 }

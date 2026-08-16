@@ -12,6 +12,7 @@
 :root {
   --background: #FFFDF8;
   --foreground: #2D1810;
+  --header-height: 96px;
   --font-playfair: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
   --font-inter: 'Inter', 'Poppins', system-ui, sans-serif;
   
@@ -210,6 +211,23 @@ h1, h2, h3, h4, .font-serif {
   to { transform: rotate(360deg); }
 }
 
+/* Bottom sheet animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(100%); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
 .animate-float-petal { animation: float-petal 7s ease-in-out infinite; }
 .animate-palm-sway { animation: palm-sway 8s ease-in-out infinite; }
 .animate-flame { animation: flame-flicker 2s ease-in-out infinite; }
@@ -220,6 +238,8 @@ h1, h2, h3, h4, .font-serif {
   animation: gold-shimmer 3s linear infinite;
 }
 .animate-pookalam { animation: pookalam-rotate 30s linear infinite; }
+.animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
+.animate-slide-up { animation: slide-up 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
 /* Staggered fade-up delays for children */
 .stagger-1 { animation-delay: 0.1s; }
@@ -254,7 +274,7 @@ h1, h2, h3, h4, .font-serif {
 /* ========================================
    CUSTOM SCROLLBAR (Kerala Theme)
    ======================================== */
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #FAF3E7; }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #D4AF37, #2E7D32);
@@ -262,6 +282,88 @@ h1, h2, h3, h4, .font-serif {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #B78103, #1B5E20);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D4AF37 #FAF3E7;
+}
+
+/* ========================================
+   SAFE AREA SUPPORT (iOS/Android)
+   ======================================== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-left { padding-left: env(safe-area-inset-left); }
+  .safe-right { padding-right: env(safe-area-inset-right); }
+  .safe-vertical { 
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-horizontal { 
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .safe-all { 
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+
+/* Mobile bottom nav spacing helper */
+.pb-nav-safe {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 768px) {
+  .pb-nav-safe { padding-bottom: 0; }
+}
+
+/* ========================================
+   TOUCH TARGET MINIMUMS (44px iOS / 48dp Android)
+   ======================================== */
+@media (pointer: coarse) {
+  button, a, input, select, textarea, [role="button"], [tabindex="0"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  input, select, textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
+/* Touch target utility classes */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* ========================================
+   REDUCED MOTION SUPPORT
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-float-petal,
+  .animate-palm-sway,
+  .animate-flame,
+  .animate-count-pulse,
+  .animate-gold-shimmer,
+  .animate-pookalam,
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
 }
 
 /* ========================================
@@ -305,4 +407,20 @@ h1, h2, h3, h4, .font-serif {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid #2E7D32;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass-card {
+    border-width: 2px;
+    border-color: #2E7D32;
+  }
+  .border-gold\/30 { border-color: #D4AF37 !important; }
+  .border-gold\/20 { border-color: #D4AF37 !important; }
 }

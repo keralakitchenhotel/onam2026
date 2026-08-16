@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import HeroBanner from '@/components/landing/HeroBanner';
-import FeatureCards from '@/components/landing/FeatureCards';
 import MenuCard from '@/components/menu/MenuCard';
 import { SADYA_MENU_ITEMS, REVIEWS_DATA, EXTRAS_MENU } from '@/lib/constants';
 import { formatINR } from '@/lib/utils';
@@ -25,16 +24,16 @@ export default function HomePage() {
     { num: 1, mlName: 'സാമ്പാർ', name: 'Sambar', icon: <CurryPotIcon className="w-6 h-6 text-orange-600" /> },
     { num: 2, mlName: 'അവിയൽ', name: 'Avial', icon: <SaladBowlIcon className="w-6 h-6 text-emerald-600" /> },
     { num: 3, mlName: 'പൈനാപ്പിൾ പച്ചടി', name: 'Pineapple Pachadi', icon: <SaladBowlIcon className="w-6 h-6 text-amber-500" /> },
-    { num: 4, mlName: 'കിച്ചടി', name: 'Khichadi', icon: <SaladBowlIcon className="w-6 h-6 text-yellow-600" /> },
+    { num: 4, mlName: 'കിച്ചടി', name: 'Kichadi', icon: <SaladBowlIcon className="w-6 h-6 text-yellow-600" /> },
     { num: 5, mlName: 'ബീറ്റ്‌റൂട്ട് പച്ചടി', name: 'Beetroot Pachadi', icon: <SaladBowlIcon className="w-6 h-6 text-rose-600" /> },
     { num: 6, mlName: 'പരിപ്പ് കറി', name: 'Parippu Curry', icon: <CurryPotIcon className="w-6 h-6 text-amber-600" /> },
     { num: 7, mlName: 'മോര് കറി', name: 'Moru Curry', icon: <WaterDrinkIcon className="w-6 h-6 text-amber-400" /> },
-    { num: 8, mlName: 'പുളിഞ്ചി', name: 'Inji Puli', icon: <PickleJarIcon className="w-6 h-6 text-maroon" /> },
-    { num: 9, mlName: 'കായ വറുത്തത്', name: 'Banana Chips', icon: <SnackChipsIcon className="w-6 h-6 text-gold" /> },
+    { num: 8, mlName: 'പുളിഞ്ചി', name: 'Pulissery', icon: <PickleJarIcon className="w-6 h-6 text-maroon" /> },
+    { num: 9, mlName: 'കായ വറുത്തത്', name: 'Kaya Varuthathu', icon: <SnackChipsIcon className="w-6 h-6 text-gold" /> },
     { num: 10, mlName: 'ശർക്കര വരട്ടി', name: 'Sharkara Varatti', icon: <SnackChipsIcon className="w-6 h-6 text-amber-800" /> },
-    { num: 11, mlName: 'ഉപ്പ്', name: 'Uppu (Salt)', icon: <PickleJarIcon className="w-6 h-6 text-slate-400" /> },
-    { num: 12, mlName: 'ഇല', name: 'Ela (Banana Leaf)', icon: <BananaLeafIcon className="w-6 h-6 text-leaf" /> },
-    { num: 13, mlName: 'പായസം അട', name: 'Ada Payasam', icon: <DessertPayasamIcon className="w-6 h-6 text-gold-deep" /> },
+    { num: 11, mlName: 'ഉപ്പ്', name: 'Salt', icon: <PickleJarIcon className="w-6 h-6 text-slate-400" /> },
+    { num: 12, mlName: 'ഇല', name: 'Banana Leaf', icon: <BananaLeafIcon className="w-6 h-6 text-leaf" /> },
+    { num: 13, mlName: 'പായസം അട', name: 'Payasam Ada', icon: <DessertPayasamIcon className="w-6 h-6 text-gold-deep" /> },
     { num: 14, mlName: 'തോരൻ', name: 'Thoran', icon: <SaladBowlIcon className="w-6 h-6 text-green-600" /> },
     { num: 15, mlName: 'ഓലൻ', name: 'Olan', icon: <SaladBowlIcon className="w-6 h-6 text-teal-600" /> },
     { num: 16, mlName: 'കാളൻ', name: 'Kalan', icon: <CurryPotIcon className="w-6 h-6 text-yellow-700" /> },
@@ -42,9 +41,9 @@ export default function HomePage() {
     { num: 18, mlName: 'മാങ്ങാ അച്ചാർ', name: 'Mango Pickle', icon: <PickleJarIcon className="w-6 h-6 text-orange-500" /> },
     { num: 19, mlName: 'പഴം', name: 'Banana', icon: <BananaLeafIcon className="w-6 h-6 text-amber-400" /> },
     { num: 20, mlName: 'രസം', name: 'Rasam', icon: <WaterDrinkIcon className="w-6 h-6 text-red-500" /> },
-    { num: 21, mlName: 'ചോറ്', name: 'Matta Rice', icon: <RiceBowlIcon className="w-6 h-6 text-leaf-dark" /> },
+    { num: 21, mlName: 'ചോറ്', name: 'Rice', icon: <RiceBowlIcon className="w-6 h-6 text-leaf-dark" /> },
     { num: 22, mlName: 'പച്ചടി', name: 'Pachadi', icon: <SaladBowlIcon className="w-6 h-6 text-emerald-500" /> },
-    { num: 23, mlName: 'കൂട്ടു കറി', name: 'Kootu Curry', icon: <CurryPotIcon className="w-6 h-6 text-amber-700" /> },
+    { num: 23, mlName: 'കൂട്ടു കറി', name: 'Koottu Curry', icon: <CurryPotIcon className="w-6 h-6 text-amber-700" /> },
   ];
 
   return (
@@ -52,8 +51,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <HeroBanner />
 
-      {/* Feature Highlights Grid */}
-      <FeatureCards />
+
 
       {/* ========================================
           SADYA MENU SHOWCASE SECTION
@@ -75,7 +73,7 @@ export default function HomePage() {
                 Our Signature <span className="gold-gradient-text italic">Sadya</span> Packages
               </h2>
               <p className="text-slate-600 text-sm sm:text-base max-w-lg">
-                From royal 30-item feasts to compact mini meals, every Sadya is a celebration of Kerala's culinary heritage.
+                Authentic 23-item Kerala Onam Sadya packages prepared with cold-pressed coconut oil and organic spices, served fresh on cut plantain leaves.
               </p>
             </div>
             <Link
@@ -87,8 +85,8 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {SADYA_MENU_ITEMS.slice(0, 3).map((item) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {SADYA_MENU_ITEMS.map((item) => (
               <MenuCard key={item.id} item={item} />
             ))}
           </div>
@@ -132,176 +130,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========================================
-          HOW IT WORKS - BOOKING STEPS
-          ======================================== */}
-      <section className="py-20 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionTitle
-            badge="Simple & Easy Process"
-            title="How Pre-Booking Works"
-            subtitle="Book your Onam Sadya in just 3 simple steps. No hassle, no festival rush."
-          />
 
-          <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting dotted line */}
-            <div className="hidden md:block absolute top-20 left-[20%] right-[20%] h-[2px] border-t-2 border-dashed border-gold/40" />
-
-            {[
-              {
-                step: '01',
-                icon: <Calendar className="w-7 h-7 text-white" />,
-                title: 'Choose Date & Slot',
-                desc: 'Select your preferred Onam festival date (Aug 25-27, 2026) and pick a convenient 1-hour delivery or pickup time slot.',
-                color: 'from-leaf to-leaf-dark',
-                ring: 'ring-leaf/20',
-              },
-              {
-                step: '02',
-                icon: <ShoppingBag className="w-7 h-7 text-white" />,
-                title: 'Select Sadya & Pay',
-                desc: 'Choose your Sadya package (Regular, Royal, Family, Mini or Corporate), add extra Payasam, and pay securely.',
-                color: 'from-gold-deep to-gold',
-                ring: 'ring-gold/20',
-              },
-              {
-                step: '03',
-                icon: <Sparkles className="w-7 h-7 text-white" />,
-                title: 'Receive & Celebrate!',
-                desc: 'Get your piping hot Sadya delivered to your doorstep or pick it up at the counter with your QR code token.',
-                color: 'from-maroon to-maroon-light',
-                ring: 'ring-maroon/20',
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="relative flex flex-col items-center text-center bg-coconut-50 rounded-3xl p-8 border border-gold/20 shadow-soft hover:shadow-card-lg transition-shadow"
-              >
-                {/* Step icon badge */}
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center text-white shadow-lg ring-4 ${item.ring} mb-5 z-10`}>
-                  {item.icon}
-                </div>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] mb-2">
-                  Step {item.step}
-                </span>
-                <h3 className="font-serif text-xl font-bold text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="text-center mt-10">
-            <Link
-              href="/book"
-              className="inline-flex items-center gap-2.5 bg-gradient-to-r from-leaf to-leaf-dark text-white font-bold text-base px-9 py-4 rounded-full shadow-glow-green hover:scale-[1.03] active:scale-[0.97] transition-all"
-            >
-              <Calendar className="w-5 h-5 text-gold-light" />
-              <span>Start Your Pre-Booking</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ==========================================
-          RESTAURANT HIGHLIGHTS & SERVICE OPTIONS
-          ========================================== */}
-      <section className="py-16 bg-gradient-to-b from-white to-coconut-100 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <SectionTitle
-            badge="Valiyaparamba Dining Experience"
-            title="A Calm Place to Enjoy Your Meal"
-            subtitle="After a long and busy week, sometimes all you need is good food and a peaceful atmosphere. KERALA KITCHEN offers a calm dining environment where guests can relax and enjoy their meal."
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white rounded-3xl border border-gold/30 shadow-soft text-center space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold shadow-sm">
-                🍛
-              </div>
-              <h3 className="font-serif text-xl font-bold text-slate-800">All-You-Can-Eat Options</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Enjoy generous traditional Kerala meals and unlimited refills on authentic curries, rice, payasam, and sides.
-              </p>
-            </div>
-
-            <div className="p-6 bg-white rounded-3xl border border-gold/30 shadow-soft text-center space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold shadow-sm">
-                🌿
-              </div>
-              <h3 className="font-serif text-xl font-bold text-slate-800">Outdoor Seating</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Relax in our serene, breezy outdoor seating area surrounded by lush greenery for a soothing dining experience.
-              </p>
-            </div>
-
-            <div className="p-6 bg-white rounded-3xl border border-gold/30 shadow-soft text-center space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-100 text-rose-800 flex items-center justify-center text-2xl font-bold shadow-sm">
-                🍽️
-              </div>
-              <h3 className="font-serif text-xl font-bold text-slate-800">Dine-in Experience</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Perfect for casual meals, family visits, and spending quality time with friends in Valiyaparamba.
-              </p>
-            </div>
-          </div>
-
-          {/* Why Visit Kerala Kitchen Banner */}
-          <div className="bg-gradient-to-r from-leaf-dark via-leaf to-leaf-dark text-white rounded-3xl p-8 shadow-card-lg relative overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-8 space-y-3">
-                <span className="text-xs font-bold uppercase tracking-widest text-gold bg-black/20 px-3 py-1 rounded-full">
-                  Local Hospitality • Valiyaparamba 673602
-                </span>
-                <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-white">
-                  Why Visit Kerala Kitchen?
-                </h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs sm:text-sm text-coconut-100 pt-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>Authentic local dining experience</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>Affordable pricing (₹1–₹200 range)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>Calm and relaxed atmosphere</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>Outdoor & Dine-in seating</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>All-you-can-eat options available</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold shrink-0" />
-                    <span>Open till 9:00 PM • Phone: 094474 45078</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="lg:col-span-4 text-center lg:text-right bg-white/10 p-5 rounded-2xl border border-white/20 backdrop-blur-sm space-y-2">
-                <p className="font-serif italic text-gold font-bold text-lg">
-                  "Good food. Simple atmosphere. Local hospitality."
-                </p>
-                <p className="text-xs text-coconut-200">
-                  Come, Eat & Enjoy at Kerala Kitchen, Valiyaparamba.
-                </p>
-                <a
-                  href="tel:09447445078"
-                  className="inline-block mt-2 bg-gold text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-full shadow-gold hover:bg-white transition-colors"
-                >
-                  Call 094474 45078
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ========================================
           STATS BAR
@@ -311,9 +140,9 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { value: 'Valiyaparamba', label: 'Local Landmark', icon: <MapPin className="w-7 h-7 text-gold mx-auto" /> },
-              { value: '₹1 - ₹200', label: 'Affordable Price Range', icon: <SadyaThaliIcon className="w-7 h-7 text-gold mx-auto" /> },
-              { value: 'Open Now', label: 'Closing Around 9:00 PM', icon: <Clock className="w-7 h-7 text-gold mx-auto" /> },
-              { value: 'Onam 2026', label: 'August 26 Thiruvonam', icon: <FestivalFireIcon className="w-7 h-7 text-gold mx-auto" /> },
+              { value: '₹220 / ₹1300', label: 'Sadya Packages', icon: <SadyaThaliIcon className="w-7 h-7 text-gold mx-auto" /> },
+              { value: '23 Items', label: 'Authentic Delicacies', icon: <Clock className="w-7 h-7 text-gold mx-auto" /> },
+              { value: 'Aug 25, 26, 27', label: 'Onam Festival 2026', icon: <FestivalFireIcon className="w-7 h-7 text-gold mx-auto" /> },
             ].map((stat, i) => (
               <div key={i} className="text-center space-y-1">
                 <div>{stat.icon}</div>
@@ -326,9 +155,9 @@ export default function HomePage() {
       </section>
 
       {/* ========================================
-          CUSTOMER TESTIMONIALS
+          CUSTOMER TESTIMONIALS SECTION (Hidden on smartphone view to save space)
           ======================================== */}
-      <section className="py-20 section-warm relative overflow-hidden">
+      <section className="hidden md:block py-20 section-warm relative overflow-hidden">
         <div className="absolute -bottom-10 left-10 opacity-[0.04] pointer-events-none">
           <PookalamMandala size={250} />
         </div>
@@ -337,80 +166,87 @@ export default function HomePage() {
           <SectionTitle
             badge="Guest Experiences"
             title="What Our Guests Say"
-            subtitle="Guests highlight the friendly and sweet nature of the staff, fine service, and calm atmosphere."
+            subtitle="Guests highlight the friendly nature of our staff, authentic taste, and calm atmosphere."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {REVIEWS_DATA.map((rev) => (
-              <div
-                key={rev.id}
-                className="bg-white rounded-3xl p-7 border border-gold/25 shadow-soft hover:shadow-card-lg hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden"
-              >
-                {/* Stars */}
-                <div className="flex items-center gap-0.5 text-gold mb-4">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-gold text-gold" />
-                  ))}
-                </div>
-
-                {/* Review Text */}
-                <p className="text-sm text-slate-700 italic leading-relaxed mb-5 relative z-10">
-                  "{rev.comment}"
-                </p>
-
-                {/* Author */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <div>
-                    <strong className="text-slate-900 block font-serif text-base">{rev.customerName}</strong>
-                    <span className="text-slate-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-leaf" />
-                      {rev.location}
+          {REVIEWS_DATA.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {REVIEWS_DATA.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="bg-white rounded-3xl p-7 border border-gold/25 shadow-soft hover:shadow-card-lg hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden"
+                >
+                  <div className="flex items-center gap-0.5 text-gold mb-4">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-gold text-gold" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-700 italic leading-relaxed mb-5 relative z-10">
+                    "{rev.comment}"
+                  </p>
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div>
+                      <strong className="text-slate-900 block font-serif text-base">{rev.customerName}</strong>
+                      <span className="text-slate-500 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 text-leaf" />
+                        {rev.location}
+                      </span>
+                    </div>
+                    <span className="bg-leaf-soft text-leaf-dark text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-leaf/20 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified Guest
                     </span>
                   </div>
-                  <span className="bg-leaf-soft text-leaf-dark text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-leaf/20 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Verified Guest
-                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center bg-white rounded-3xl p-10 border border-gold/30 shadow-soft max-w-xl mx-auto space-y-3">
+              <p className="font-serif text-lg font-bold text-leaf-dark">Be the first to leave a review!</p>
+              <p className="text-xs text-slate-600">Pre-book your Sadya and share your experience with us.</p>
+              <Link href="/reviews" className="inline-block bg-leaf text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-leaf-dark transition-colors">
+                Write a Review
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
       {/* ========================================
           EXTRA PAYASAM & ADD-ONS PREVIEW
           ======================================== */}
-      <section className="py-16 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionTitle
-            badge="Festival Extras"
-            title="Add Extra Payasam & Savories"
-            subtitle="Elevate your Onam feast with additional liters of golden Palada Payasam, crispy banana chips, and more."
-          />
+      {EXTRAS_MENU.length > 0 && (
+        <section className="py-16 bg-white relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionTitle
+              badge="Festival Extras"
+              title="Add Extra Payasam & Savories"
+              subtitle="Elevate your Onam feast with additional Payasam and savories."
+            />
 
-          <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {EXTRAS_MENU.slice(0, 8).map((ext) => (
-              <div
-                key={ext.id}
-                className="p-4 bg-coconut-50 rounded-2xl border border-gold/25 shadow-sm hover:shadow-gold hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-snug">{ext.name}</h4>
-                  <span className="font-serif font-extrabold text-leaf text-lg mt-1 block">{formatINR(ext.price)}</span>
-                </div>
-                <Link
-                  href="/book"
-                  className="mt-3 w-full bg-gradient-to-r from-gold/10 to-gold/20 hover:from-gold/30 hover:to-gold/40 text-slate-800 border border-gold/30 text-xs font-bold py-2.5 rounded-xl text-center transition-colors flex items-center justify-center gap-1.5"
+            <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {EXTRAS_MENU.slice(0, 8).map((ext) => (
+                <div
+                  key={ext.id}
+                  className="p-4 bg-coconut-50 rounded-2xl border border-gold/25 shadow-sm hover:shadow-gold hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Add to Booking</span>
-                </Link>
-              </div>
-            ))}
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-snug">{ext.name}</h4>
+                    <span className="font-serif font-extrabold text-leaf text-lg mt-1 block">{formatINR(ext.price)}</span>
+                  </div>
+                  <Link
+                    href="/book"
+                    className="mt-3 w-full bg-gradient-to-r from-gold/10 to-gold/20 hover:from-gold/30 hover:to-gold/40 text-slate-800 border border-gold/30 text-xs font-bold py-2.5 rounded-xl text-center transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>Add to Booking</span>
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ========================================
           FINAL CTA BOOKING BANNER

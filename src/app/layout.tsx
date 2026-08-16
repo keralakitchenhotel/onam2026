@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-coconut-50 text-slate-800 flex flex-col antialiased" suppressHydrationWarning>
         <AuthProvider>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-nav-safe md:pb-0">{children}</main>
           <Footer />
           <MobileBottomNav />
         </AuthProvider>

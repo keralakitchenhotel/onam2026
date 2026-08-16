@@ -59,6 +59,24 @@ const config: Config = {
         serif: ["var(--font-playfair)", "Georgia", "serif"],
         sans: ["var(--font-inter)", "Poppins", "sans-serif"],
       },
+      fontSize: {
+        'mobile-base': ['16px', { lineHeight: '1.5' }],
+        'mobile-lg': ['18px', { lineHeight: '1.5' }],
+        'mobile-xl': ['20px', { lineHeight: '1.4' }],
+      },
+      spacing: {
+        'touch': '44px',
+        'touch-lg': '48px',
+        'nav-height': '96px',
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
+      minWidth: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
       borderRadius: {
         '3xl': '1.5rem',
         '4xl': '2rem',

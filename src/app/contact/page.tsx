@@ -20,7 +20,7 @@ export default function ContactPage() {
         <PookalamMandala size={280} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12 pb-nav-safe">
         <SectionTitle
           badge="Get in Touch"
           title="Contact Kerala Kitchen"
@@ -117,38 +117,38 @@ export default function ContactPage() {
                 <p className="text-sm text-slate-600">We'll get back to you within 2-3 hours during festival season.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+              <form onSubmit={handleSubmit} className="space-y-5 text-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Your Name</label>
+                    <label className="block font-bold text-slate-700 mb-1.5">Your Name</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Meera Nair"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                      className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Phone Number</label>
+                    <label className="block font-bold text-slate-700 mb-1.5">Phone Number</label>
                     <input
                       type="tel"
                       required
                       placeholder="+91 98XXX XXXXX"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                      className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Email (Optional)</label>
+                  <label className="block font-bold text-slate-700 mb-1.5">Email (Optional)</label>
                   <input
                     type="email"
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                    className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Enquiry Type</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm bg-white">
+                  <label className="block font-bold text-slate-700 mb-1.5">Enquiry Type</label>
+                  <select className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base bg-white touch-target">
                     <option value="">Select topic...</option>
                     <option>Pre-Booking Help</option>
                     <option>Bulk / Corporate Order</option>
@@ -159,17 +159,17 @@ export default function ContactPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Your Message</label>
+                  <label className="block font-bold text-slate-700 mb-1.5">Your Message</label>
                   <textarea
                     rows={4}
                     required
                     placeholder="How can we help you celebrate Onam?"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                    className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-leaf to-leaf-dark hover:from-leaf-dark hover:to-leaf text-white font-bold py-4 rounded-full shadow-glow-green text-sm flex items-center justify-center gap-2 transition-all"
+                  className="w-full bg-gradient-to-r from-leaf to-leaf-dark hover:from-leaf-dark hover:to-leaf text-white font-bold py-4 rounded-full shadow-glow-green text-sm flex items-center justify-center gap-2 transition-all touch-target"
                 >
                   <Send className="w-4 h-4" />
                   Send Message
@@ -180,7 +180,7 @@ export default function ContactPage() {
         </div>
 
         {/* Embedded Map Placeholder */}
-        <div className="w-full h-64 sm:h-80 rounded-3xl bg-coconut-200 border border-gold/25 flex items-center justify-center text-sm text-slate-500 shadow-sm relative overflow-hidden">
+        <div className="w-full aspect-[16/9] sm:aspect-[4/3] rounded-3xl bg-coconut-200 border border-gold/25 flex items-center justify-center text-sm text-slate-500 shadow-sm relative overflow-hidden">
           <div className="text-center space-y-2 z-10">
             <MapPin className="w-10 h-10 text-leaf mx-auto opacity-40" />
             <p className="font-serif text-lg font-bold text-leaf-dark">Kerala Kitchen, MG Road, Kochi</p>

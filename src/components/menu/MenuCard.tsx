@@ -20,7 +20,7 @@ export default function MenuCard({ item, onSelect }: MenuCardProps) {
     <div className="bg-white rounded-3xl overflow-hidden border border-gold/30 shadow-soft hover:shadow-card-lg hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group relative">
       {/* Card Image Header */}
       <div>
-        <div className="relative aspect-[16/10] overflow-hidden bg-coconut-200">
+        <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden bg-coconut-200">
           <Image
             src={item.imageUrl}
             alt={item.name}
@@ -89,7 +89,7 @@ export default function MenuCard({ item, onSelect }: MenuCardProps) {
             <div className="pt-1">
               <button
                 onClick={() => setShowItems(!showItems)}
-                className="w-full text-xs font-bold text-leaf hover:text-leaf-dark flex items-center justify-between py-2 border-t border-dashed border-gold/30 transition-colors"
+                className="w-full text-xs font-bold text-leaf hover:text-leaf-dark flex items-center justify-between py-2 border-t border-dashed border-gold/30 transition-colors touch-target"
               >
                 <span className="flex items-center gap-1.5">
                   <BananaLeafIcon className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function MenuCard({ item, onSelect }: MenuCardProps) {
               </button>
 
               {showItems && (
-                <div className="mt-2 p-3.5 bg-coconut-100 rounded-2xl max-h-48 overflow-y-auto text-xs space-y-1.5 border border-gold/20">
+                <div className="mt-2 p-3.5 bg-coconut-100 rounded-2xl max-h-64 overflow-y-auto text-xs space-y-1.5 border border-gold/20">
                   {item.itemsIncluded.map((inc, i) => (
                     <div key={i} className="flex items-center gap-2 text-slate-700">
                       <CheckCircle2 className="w-3.5 h-3.5 text-leaf shrink-0" />
@@ -117,7 +117,7 @@ export default function MenuCard({ item, onSelect }: MenuCardProps) {
       <div className="p-5 sm:p-6 pt-0">
         <Link
           href={`/book?sadya=${item.id}`}
-          className="w-full bg-gradient-to-r from-leaf via-leaf-dark to-leaf hover:from-leaf-dark hover:via-leaf hover:to-leaf-dark text-white font-bold text-sm py-3.5 rounded-2xl shadow-sm hover:shadow-glow-green transition-all flex items-center justify-center gap-2.5 group/btn"
+          className="w-full bg-gradient-to-r from-leaf via-leaf-dark to-leaf hover:from-leaf-dark hover:via-leaf hover:to-leaf-dark text-white font-bold text-sm py-3.5 rounded-2xl shadow-sm hover:shadow-glow-green transition-all flex items-center justify-center gap-2.5 group/btn touch-target"
         >
           <ShoppingBag className="w-4 h-4 text-gold-light group-hover/btn:scale-110 transition-transform" />
           <span>Pre-Book This Package</span>

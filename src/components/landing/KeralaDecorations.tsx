@@ -116,22 +116,27 @@ export function FloatingPetals({ className = '' }: { className?: string }) {
 
 /* ---- Coconut Palm Tree Silhouette ---- */
 export function CoconutPalm({ side = 'left', className = '' }: { side?: 'left' | 'right'; className?: string }) {
-  const flip = side === 'right' ? 'scale(-1, 1)' : '';
   return (
-    <svg width="120" height="200" viewBox="0 0 120 200" className={`${className} animate-sway`} style={{ transform: flip }} aria-hidden="true">
-      {/* Trunk */}
-      <path d="M60 200 Q55 150 58 100 Q60 80 62 100 Q65 150 60 200Z" fill="#8D6E63" opacity="0.2" />
-      {/* Fronds */}
-      <path d="M60 100 Q30 60 5 70" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.15" />
-      <path d="M60 100 Q20 50 10 40" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.12" />
-      <path d="M60 100 Q40 45 20 30" stroke="#4CAF50" strokeWidth="1.5" fill="none" opacity="0.12" />
-      <path d="M60 100 Q90 60 115 70" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.15" />
-      <path d="M60 100 Q100 50 110 40" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.12" />
-      <path d="M60 100 Q80 45 100 30" stroke="#4CAF50" strokeWidth="1.5" fill="none" opacity="0.12" />
-      {/* Coconuts */}
-      <circle cx="55" cy="97" r="4" fill="#8D6E63" opacity="0.2" />
-      <circle cx="65" cy="96" r="4" fill="#795548" opacity="0.18" />
-    </svg>
+    <div
+      className={className}
+      style={side === 'right' ? { transform: 'scale(-1, 1)' } : undefined}
+      aria-hidden="true"
+    >
+      <svg width="120" height="200" viewBox="0 0 120 200" className="animate-sway">
+        {/* Trunk */}
+        <path d="M60 200 Q55 150 58 100 Q60 80 62 100 Q65 150 60 200Z" fill="#8D6E63" opacity="0.2" />
+        {/* Fronds */}
+        <path d="M60 100 Q30 60 5 70" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.15" />
+        <path d="M60 100 Q20 50 10 40" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.12" />
+        <path d="M60 100 Q40 45 20 30" stroke="#4CAF50" strokeWidth="1.5" fill="none" opacity="0.12" />
+        <path d="M60 100 Q90 60 115 70" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.15" />
+        <path d="M60 100 Q100 50 110 40" stroke="#2E7D32" strokeWidth="2" fill="none" opacity="0.12" />
+        <path d="M60 100 Q80 45 100 30" stroke="#4CAF50" strokeWidth="1.5" fill="none" opacity="0.12" />
+        {/* Coconuts */}
+        <circle cx="55" cy="97" r="4" fill="#8D6E63" opacity="0.2" />
+        <circle cx="65" cy="96" r="4" fill="#795548" opacity="0.18" />
+      </svg>
+    </div>
   );
 }
 

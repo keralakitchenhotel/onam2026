@@ -28,6 +28,12 @@ dev-server.log
 # local env files
 .env*.local
 .env
+.dev.vars
+
+# cloudflare / opennext
+.open-next/
+cloudflare-env.d.ts
+.wrangler/
 
 # vercel
 .vercel

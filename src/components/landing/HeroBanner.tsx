@@ -129,8 +129,8 @@ export default function HeroBanner() {
               </div>
             </div>
 
-            {/* Right Column: Poster Card & King Maveli */}
-            <div className="lg:col-span-4 flex flex-col items-center justify-center relative">
+            {/* Right Column: Poster Card & King Maveli (Hidden on smartphone view to save space) */}
+            <div className="hidden lg:flex lg:col-span-4 flex-col items-center justify-center relative">
               <div className="relative p-5 rounded-3xl bg-gradient-to-b from-white via-coconut-50 to-gold-soft/80 border-2 border-gold/40 shadow-card-lg backdrop-blur-md max-w-sm w-full text-center space-y-3 group hover:border-gold transition-all duration-300">
                 {/* Brand Logo header */}
                 <div className="relative h-16 w-full overflow-hidden rounded-2xl bg-leaf-dark p-2 border border-gold/40 shadow-inner flex items-center justify-center">

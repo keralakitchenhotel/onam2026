@@ -3,11 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function StaffPageRedirect() {
+export default function DeliveryPageRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/kitchen');
+    router.replace('/deliver');
   }, [router]);
 
   return null;

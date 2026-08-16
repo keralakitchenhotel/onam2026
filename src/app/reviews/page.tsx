@@ -38,7 +38,7 @@ export default function ReviewsPage() {
         <PookalamMandala size={300} />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12 pb-nav-safe">
         <SectionTitle
           badge="Customer Voice"
           title="Ratings & Customer Experience"
@@ -56,41 +56,41 @@ export default function ReviewsPage() {
               <span>Share Your Experience</span>
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Your Name</label>
+                <label className="block font-bold text-slate-700 mb-1.5">Your Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Dr. Lakshmi Menon"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                  className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Location</label>
+                <label className="block font-bold text-slate-700 mb-1.5">Location</label>
                 <input
                   type="text"
                   placeholder="e.g. Kochi / Trivandrum"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                  className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Star Rating</label>
+                <label className="block font-bold text-slate-700 mb-1.5">Star Rating</label>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       type="button"
                       key={star}
                       onClick={() => setRating(star)}
-                      className={`p-1 transition-transform hover:scale-110 ${star <= rating ? 'text-gold' : 'text-slate-200'}`}
+                      className={`p-2 transition-transform hover:scale-110 touch-target ${star <= rating ? 'text-gold' : 'text-slate-200'}`}
                     >
-                      <Star className={`w-6 h-6 ${star <= rating ? 'fill-gold' : ''}`} />
+                      <Star className={`w-8 h-8 ${star <= rating ? 'fill-gold' : ''}`} />
                     </button>
                   ))}
                   <span className="ml-2 font-bold text-slate-700 text-sm self-center">{rating}/5</span>
@@ -98,20 +98,20 @@ export default function ReviewsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Your Feedback</label>
+                <label className="block font-bold text-slate-700 mb-1.5">Your Feedback</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Tell us about the Sadya taste, Payasam, packaging..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-sm"
+                  className="w-full px-4 py-4 rounded-xl border border-slate-200 outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/10 font-medium text-base touch-target"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-leaf to-leaf-dark hover:from-leaf-dark hover:to-leaf text-white font-bold py-3.5 rounded-full shadow-glow-green text-sm transition-all flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-leaf to-leaf-dark hover:from-leaf-dark hover:to-leaf text-white font-bold py-3.5 rounded-full shadow-glow-green text-sm transition-all flex items-center justify-center gap-2 touch-target"
               >
                 <Send className="w-4 h-4 text-gold-light" />
                 <span>Submit Review</span>

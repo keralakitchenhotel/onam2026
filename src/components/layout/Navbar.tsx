@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -13,6 +13,7 @@ export default function Navbar() {
   const { user, isAuthenticated } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -24,25 +25,36 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  // Update CSS custom property for header height (used by mobile menu).
+  // Only measure while the menu is CLOSED: once the menu renders inside the
+  // header, its own height inflates the measurement and collapses the menu
+  // to ~0px (max-h = 100vh - header-height ≈ 0).
+  useEffect(() => {
+    if (mobileMenuOpen) return;
+    if (headerRef.current) {
+      const height = headerRef.current.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+    }
+  }, [isScrolled, mobileMenuOpen]);
+
   const navLinks = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/menu', label: 'Sadya Menu', icon: Utensils },
     { href: '/track', label: 'Track Order', icon: Truck },
-    { href: '/gallery', label: 'Gallery', icon: Images },
-    { href: '/reviews', label: 'Reviews', icon: Star },
     { href: '/contact', label: 'Contact', icon: PhoneCall },
   ];
 
   return (
     <header
+      ref={headerRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[400ms] ${
         isScrolled
           ? 'bg-coconut-50/95 backdrop-blur-xl shadow-lg border-b border-gold/20 py-2'
           : 'bg-gradient-to-b from-coconut-50/80 to-transparent py-4'
       }`}
     >
-      {/* Kasavu gold top line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-leaf via-gold to-maroon" />
+      {/* Kasavu gold top line - thicker for visibility */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-leaf via-gold to-maroon" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
@@ -139,10 +151,10 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Mobile Hamburger - improved touch target */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2.5 rounded-2xl text-leaf-dark bg-coconut-100 border border-gold/25 hover:bg-coconut-200 transition-colors"
+            className="lg:hidden touch-target-lg p-3 rounded-2xl text-leaf-dark bg-coconut-100 border border-gold/25 hover:bg-coconut-200 transition-colors"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
           >
@@ -153,9 +165,9 @@ export default function Navbar() {
 
       {/* Mobile Slideout Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-coconut-50/[0.98] backdrop-blur-xl border-b border-gold/30 shadow-2xl px-4 pt-3 pb-6 mt-2 max-h-[calc(100dvh-5rem)] overflow-y-auto">
+        <div className="lg:hidden bg-coconut-50/[0.98] backdrop-blur-xl border-b border-gold/30 shadow-2xl px-4 pt-3 pb-6 overflow-y-auto max-h-[calc(100vh-var(--header-height))] max-h-[calc(100dvh-var(--header-height))]">
           {/* Festival ribbon at top */}
-          <div className="h-[2px] bg-gradient-to-r from-leaf via-gold to-maroon rounded-full mb-3" />
+          <div className="h-[3px] bg-gradient-to-r from-leaf via-gold to-maroon rounded-full mb-3" />
 
           <nav className="space-y-1.5" aria-label="Mobile navigation">
             {navLinks.map((link) => {
@@ -166,18 +178,18 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-semibold transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-colors touch-target ${
                     isActive
                       ? 'bg-gradient-to-r from-leaf to-leaf-dark text-white shadow-md'
                       : 'text-slate-800 hover:bg-coconut-200'
                   }`}
                 >
                   <span
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                       isActive ? 'bg-white/15 text-gold' : 'bg-coconut-100 text-leaf'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-5 h-5" />
                   </span>
                   {link.label}
                 </Link>
@@ -185,11 +197,11 @@ export default function Navbar() {
             })}
           </nav>
 
-          <div className="pt-3 border-t border-gold/20 flex flex-col gap-2.5">
+          <div className="pt-3 border-t border-gold/20 flex flex-col gap-3">
             {isAuthenticated && user ? (
               <Link
                 href={user.role === 'admin' ? '/admin' : user.role === 'staff' ? '/staff' : '/dashboard'}
-                className="w-full text-center py-3 text-sm font-bold text-leaf-dark bg-white border border-leaf/30 rounded-2xl flex items-center justify-center gap-2"
+                className="w-full text-center py-3.5 text-sm font-bold text-leaf-dark bg-white border border-leaf/30 rounded-2xl flex items-center justify-center gap-2 touch-target"
               >
                 <LayoutDashboard className="w-4 h-4 text-leaf" />
                 My Dashboard ({user.name})
@@ -197,7 +209,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="w-full text-center py-3 text-sm font-bold text-maroon bg-white border border-maroon/30 rounded-2xl flex items-center justify-center gap-2"
+                className="w-full text-center py-3.5 text-sm font-bold text-maroon bg-white border border-maroon/30 rounded-2xl flex items-center justify-center gap-2 touch-target"
               >
                 <LogIn className="w-4 h-4 text-maroon" />
                 Admin / Staff Login
@@ -205,14 +217,14 @@ export default function Navbar() {
             )}
             <a
               href="tel:09447445078"
-              className="w-full text-center py-3 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl flex items-center justify-center gap-2"
+              className="w-full text-center py-3.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl flex items-center justify-center gap-2 touch-target"
             >
               <PhoneCall className="w-4 h-4 text-gold" />
               Call 0944 744 5078
             </a>
             <Link
               href="/book"
-              className="w-full text-center py-3.5 text-sm font-extrabold text-slate-900 bg-gradient-to-r from-gold via-gold-warm to-gold rounded-2xl shadow-gold flex items-center justify-center gap-2"
+              className="w-full text-center py-4 text-sm font-extrabold text-slate-900 bg-gradient-to-r from-gold via-gold-warm to-gold rounded-2xl shadow-gold flex items-center justify-center gap-2 touch-target"
             >
               <Calendar className="w-4 h-4 text-slate-900" />
               Pre-Book Onam Sadya Now

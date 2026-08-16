@@ -91,7 +91,7 @@ export default function SavedAddressesManager({
             >
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-sm">
                     {getLabelIcon(addr.label)}
                     {addr.label}
                   </span>

@@ -84,18 +84,18 @@ export default function OrderTracker() {
           Enter your Booking Number (e.g., ONAM-2026-8492) or registered phone number.
         </p>
 
-        {/* Search Bar Form */}
-        <form onSubmit={handleSearch} className="max-w-md mx-auto pt-2 flex gap-2">
+        {/* Search Bar Form - stacked on mobile */}
+        <form onSubmit={handleSearch} className="max-w-md mx-auto pt-2 flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             placeholder="ONAM-2026-XXXX or Phone"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-full border border-gold/40 shadow-sm font-mono text-sm uppercase outline-none focus:ring-2 focus:ring-leaf/20"
+            className="flex-1 px-4 py-3 rounded-full border border-gold/40 shadow-sm font-mono text-sm uppercase outline-none focus:ring-2 focus:ring-leaf/20 touch-target"
           />
           <button
             type="submit"
-            className="bg-leaf hover:bg-leaf-dark text-white font-bold px-6 py-3 rounded-full shadow-md flex items-center gap-1.5"
+            className="bg-leaf hover:bg-leaf-dark text-white font-bold px-6 py-3 rounded-full shadow-md flex items-center gap-1.5 touch-target"
           >
             <Search className="w-4 h-4 text-gold-light" />
             <span>Search</span>
@@ -104,7 +104,7 @@ export default function OrderTracker() {
       </div>
 
       {activeOrder ? (
-        <div className="bg-white border border-gold/30 rounded-3xl p-6 sm:p-8 shadow-card space-y-8 animate-fade-up">
+        <div className="bg-white border border-gold/30 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-card space-y-8 animate-fade-up">
           {/* Top Banner Meta */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
@@ -119,7 +119,7 @@ export default function OrderTracker() {
               </span>
               <button
                 onClick={() => generateInvoicePDF(activeOrder)}
-                className="p-2.5 rounded-full bg-coconut-100 border border-gold/30 hover:bg-coconut-200 text-slate-700"
+                className="p-2.5 rounded-full bg-coconut-100 border border-gold/30 hover:bg-coconut-200 text-slate-700 touch-target"
                 title="Download PDF Invoice"
               >
                 <Download className="w-5 h-5 text-gold-deep" />
@@ -127,7 +127,7 @@ export default function OrderTracker() {
             </div>
           </div>
 
-          {/* Animated Timeline */}
+          {/* Animated Timeline - Mobile optimized */}
           <div className="py-4">
             <h3 className="font-serif text-lg font-bold text-leaf-dark mb-6">Fulfillment Progress</h3>
             {activeOrder.orderStatus === 'Cancelled' && (
@@ -136,29 +136,36 @@ export default function OrderTracker() {
                 <span>This booking was cancelled. No further fulfillment is scheduled for this order.</span>
               </div>
             )}
-            <div className="relative pl-6 sm:pl-8 border-l-2 border-gold/30 space-y-8">
+            <div className="space-y-6">
               {timelineSteps.map((step, idx) => {
                 const status = getStepStatus(step.key, activeOrder.orderStatus);
                 const isDone = status === 'completed';
+                const isActive = status === 'active';
 
                 return (
                   <div key={idx} className="relative group">
-                    {/* Circle icon marker */}
-                    <div
-                      className={`absolute -left-[31px] sm:-left-[35px] top-0 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                        isDone
-                          ? 'bg-leaf border-leaf text-white shadow-md'
-                          : 'bg-white border-slate-300 text-slate-400'
-                      }`}
-                    >
-                      {isDone ? <CheckCircle2 className="w-4 h-4 text-gold-soft" /> : idx + 1}
-                    </div>
+                    {/* Mobile: inline layout, Desktop: left-aligned with line */}
+                    <div className="flex items-start gap-3 md:pl-8 md:border-l-2 md:border-gold/30">
+                      {/* Circle icon marker */}
+                      <div
+                        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                          isDone
+                            ? 'bg-leaf border-leaf text-white shadow-md'
+                            : isActive
+                            ? 'bg-gold border-gold text-white shadow-md animate-pulse'
+                            : 'bg-white border-slate-300 text-slate-400'
+                        }`}
+                      >
+                        {isDone ? <CheckCircle2 className="w-5 h-5 text-gold-soft" /> : idx + 1}
+                      </div>
 
-                    <div className="bg-coconut-50 p-4 rounded-2xl border border-gold/20">
-                      <h4 className={`font-serif font-bold text-base ${isDone ? 'text-leaf-dark' : 'text-slate-700'}`}>
-                        {step.label}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                      <div className="flex-1 bg-coconut-50 p-4 rounded-2xl border border-gold/20">
+                        <h4 className={`font-serif font-bold text-base ${isDone ? 'text-leaf-dark' : isActive ? 'text-gold-deep' : 'text-slate-700'}`}>
+                          {step.label}
+                          {isActive && <span className="ml-2 text-xs bg-gold/20 text-gold-deep px-2 py-0.5 rounded-full">Current</span>}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                      </div>
                     </div>
                   </div>
                 );
@@ -204,7 +211,7 @@ export default function OrderTracker() {
           <AlertCircle className="w-12 h-12 text-maroon mx-auto" />
           <h3 className="font-serif text-xl font-bold text-slate-800">No Booking Found</h3>
           <p className="text-sm text-slate-500 max-w-sm mx-auto">
-            We couldn’t find an active booking matching "{searchQuery}". Please check your booking code or try sample order <strong>ONAM-2026-8492</strong>.
+            We couldn't find an active booking matching "{searchQuery}". Please check your booking code or try sample order <strong>ONAM-2026-8492</strong>.
           </p>
         </div>
       )}
